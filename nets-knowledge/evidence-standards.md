@@ -18,6 +18,8 @@ interpretation. These standards say how NETS achieves that.
 - `verified_by` stays empty until **a person** has checked the entry against the original
   PDF or StoX output. The release check warns on every unverified entry used. Extraction
   errors are the most likely failure of this whole workflow; this is the control for them.
+- Once verification has started, edit the log in place and never regenerate it: a rebuild
+  can silently undo a person's corrections, and there is no history to recover them from.
 - Prefer fewer, well-chosen numbers. A body needs the values it will use, not the report.
 
 ## 2. Keep evidence and interpretation apart

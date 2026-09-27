@@ -39,6 +39,12 @@ before drafting.
   equipment, timing, coverage, method), even when qualitative.
 - **Ask the user to verify** the entries against the originals and to fill `verified_by`.
   Offer a short list sorted by importance so the checking is manageable.
+- **Once any entry is verified, the CSV is the source of truth.** Add or change entries by
+  editing `evidence-log.csv` in place; never regenerate it from a script or an earlier
+  version, even one that claims to keep `verified_by`. A person's corrections are the main
+  control against extraction errors, and the workspace has no version history to recover
+  them from. If you build the first version with a script, make the script refuse to run
+  when `verified_by` is filled anywhere. Copy the file before any bulk change.
 
 ## 3. Draft
 
