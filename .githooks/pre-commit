@@ -75,7 +75,10 @@ fi
 # ---- 3. Version stamp -----------------------------------------------------------------
 version_file="$nets_root/VERSION"
 readme="$nets_root/README.md"
-rel_version=${version_file#"$repo_root"/}
+# Ask git for the path relative to the repository root: on Windows, rev-parse gives
+# "C:/..." while pwd gives "/c/...", so stripping one from the other fails silently and
+# the version would never be bumped.
+rel_version="$(cd "$nets_root" && git rev-parse --show-prefix)VERSION"
 
 read_version() {
   sed -n 's/^version:[[:space:]]*//p' | head -n 1
