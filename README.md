@@ -1,6 +1,6 @@
 # 🕸️ NETS — Nansen Evidence & Technical Synthesis
 
-<!-- version -->**Version 0.2.0** (2026-09-27)<!-- /version -->
+<!-- version -->**Version 0.2.1** (2026-09-27)<!-- /version -->
 
 **Help your AI coding agent turn EAF-Nansen survey reports and StoX outputs into careful,
 traceable syntheses for regional bodies — without losing control of partners' data.**
@@ -58,6 +58,10 @@ survey content. A local model is the appropriate route in that case.
 
 ## 🚀 Quickstart
 
+For a first test on real material, follow [`GETTING-STARTED.md`](GETTING-STARTED.md). Run
+NETS on your own computer inside the institute's network, not in a cloud agent session: the
+scripts refuse to handle survey material in a cloud session.
+
 1. Have R (≥ 4.1) and an agent. Tell the agent:
    ```
    install NETS from https://github.com/niknikos/NETS
@@ -74,6 +78,7 @@ survey content. A local model is the appropriate route in that case.
 
 | Path | Contents |
 |---|---|
+| [`GETTING-STARTED.md`](GETTING-STARTED.md) | Step-by-step first real test |
 | [`CLAUDE.md`](CLAUDE.md) / [`AGENTS.md`](AGENTS.md) | Agent entry points: confidentiality rules and router |
 | [`skills/`](skills/) | Procedures: install, update, privacy, ingest, StoX, synthesis, release check |
 | [`nets-knowledge/`](nets-knowledge/) | Data governance, evidence standards, report anatomy, StoX, programme context, one profile per body |

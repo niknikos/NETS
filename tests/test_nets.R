@@ -8,6 +8,9 @@
 #
 # nets:allow-synthetic
 
+# Everything here is synthetic, so the tests may run in cloud sessions too.
+Sys.setenv(NETS_SYNTHETIC_ONLY = "true")
+
 self <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)[1])
 nets_root_dir <- normalizePath(file.path(dirname(self), ".."))
 for (s in c("nets_common.R", "nets_evidence.R", "nets_new_survey.R", "nets_ingest_pdf.R",
@@ -89,6 +92,13 @@ yaml::write_yaml(manifest, file.path(sd, "survey.yaml"))
 m <- nets_read_manifest(sd)
 check("body names are normalised to upper case", "CECAF" %in% names(m$reporting))
 cl <- nets_clearance(m)
+
+old_remote <- Sys.getenv("CLAUDE_CODE_REMOTE", unset = NA)
+Sys.setenv(CLAUDE_CODE_REMOTE = "true", NETS_SYNTHETIC_ONLY = "")
+expect_error("real surveys are refused in a cloud session", nets_read_manifest(sd), "cloud agent session")
+expect_error("new workspaces are refused in a cloud session", nets_new_survey("X", ws), "cloud agent session")
+Sys.setenv(NETS_SYNTHETIC_ONLY = "true")
+if (is.na(old_remote)) Sys.unsetenv("CLAUDE_CODE_REMOTE") else Sys.setenv(CLAUDE_CODE_REMOTE = old_remote)
 check("clearance table has one row per body x area", nrow(cl) == 3 && all(cl$body == "CECAF"))
 
 # ---- PDF ingestion ------------------------------------------------------------------

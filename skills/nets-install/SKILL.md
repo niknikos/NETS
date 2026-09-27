@@ -9,6 +9,14 @@ Goal: NETS set up **once per machine**, usable from any project, with a workspac
 confidential survey material that is outside every repository. Run the steps in order and
 resolve blockers before moving on.
 
+## Step 0 — Check where you are running
+
+NETS handles real survey material only on the user's own computer, inside the institute's
+network. If `CLAUDE_CODE_REMOTE` is set, this is a cloud session: stop the installation,
+explain that reports would be stored in a remote container and that ResourceSpace is not
+reachable from it, and point to [`GETTING-STARTED.md`](../../GETTING-STARTED.md). Working on
+NETS's own code and tests with synthetic material is fine in a cloud session.
+
 ## Step 1 — Privacy and data-agreement gate (blocking, once)
 
 Survey reports contain partner countries' unpublished results. Unlike a database query,

@@ -39,6 +39,11 @@ aggregations, shared stocks under negotiation, fishing-vessel sightings, dispute
    records it in `~/.nets/config.json`. Do not re-gate routine work on it; remind briefly
    when useful.
 
+7. **Real material only in a local session.** Survey work runs on the user's own computer,
+   inside the institute's network. In a cloud session (`CLAUDE_CODE_REMOTE` is set) the
+   scripts refuse to touch surveys; there, work only on NETS itself, with synthetic
+   material, and point the user to [`GETTING-STARTED.md`](GETTING-STARTED.md).
+
 If a request would breach any of these, stop and explain why, and suggest a safe route.
 
 ---

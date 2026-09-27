@@ -65,7 +65,26 @@ nets_enclosing_repo <- function(path) {
 
 # The workspace holds confidential material. Refuse locations where it could be pushed or
 # where it would sit at a filesystem root; warn about cloud-synced folders.
+# Real survey material belongs on the user's own machine. A cloud agent session (Claude Code
+# on the web sets CLAUDE_CODE_REMOTE) would hold it in a remote container, and cannot reach
+# institute systems such as ResourceSpace anyway. Developing NETS itself in the cloud is
+# fine: the test suite sets NETS_SYNTHETIC_ONLY=true because it uses invented material only.
+nets_is_cloud_session <- function() {
+  tolower(Sys.getenv("CLAUDE_CODE_REMOTE")) %in% c("true", "1", "yes")
+}
+
+nets_assert_local_session <- function() {
+  if (nets_is_cloud_session() && !identical(Sys.getenv("NETS_SYNTHETIC_ONLY"), "true")) {
+    stop("This looks like a cloud agent session (CLAUDE_CODE_REMOTE is set). NETS handles real ",
+         "survey material only on your own computer: start Claude Code there (desktop app or ",
+         "terminal) inside the institute's network. Cloud sessions are for developing NETS ",
+         "with synthetic material.", call. = FALSE)
+  }
+  invisible(TRUE)
+}
+
 nets_assert_safe_workspace <- function(path) {
+  nets_assert_local_session()
   p <- normalizePath(path, mustWork = FALSE)
   if (p %in% c("/", "/usr", "/opt", "/etc", "/var") || grepl("^[A-Za-z]:[\\\\/]?$", p) ||
       grepl("^[A-Za-z]:[\\\\/](Windows|Program Files)", p, ignore.case = TRUE)) {
@@ -101,6 +120,7 @@ nets_clearance_statuses <- c("cleared", "pending", "refused", "not_required")
 nets_area_types <- c("eez", "high_seas", "joint_zone", "other")
 
 nets_read_manifest <- function(survey_dir) {
+  nets_assert_local_session()
   f <- file.path(survey_dir, "survey.yaml")
   if (!file.exists(f)) {
     stop("No survey.yaml in ", survey_dir, ". Create the survey with nets_new_survey.R first.",
