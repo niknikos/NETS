@@ -48,8 +48,9 @@ Rscript "<nets_path>/scripts/nets_new_synthesis.R" "<survey_dir>" <BODY> "<autho
 
 This creates `outputs/<BODY>/<survey>_<BODY>_synthesis.qmd` from the template. Then:
 
-- Every number via inline R from the evidence log (value and citation); add each id to
-  `used_ids` for the annex. Never type a value.
+- Every number via inline R from the evidence log (value and citation). Ids used through
+  `v()` and `cite()` reach the annex automatically; call `use()` for ids a table chunk reads
+  another way. Never type a value.
 - **What the survey found**: evidence only. **Interpretation**: reasoning, labelled, with
   alternatives. **Limitations and comparability**: specific, with consequences for the
   body's use. **Implications** and **Points for consideration**: modest, explicit, and

@@ -42,7 +42,11 @@ check("spelled-out hemisphere is masked with the position",
       nets_redact_text("transect 12\u00B030' north in X")$text == "transect [COORD] in X")
 kept <- c("between 12\u00B0N and 16\u00B0N", "surface temperature 24.5\u00B0C", "biomass 412 000 t",
           "CV 0.21", "length 23.5 cm", "Table 3.2 Numbers", "every 2° latitude",
-          "north of 12°N", "17° west")
+          "north of 12°N", "17° west",
+          "3 dB beamwidth        7.10° along ship", "Alongship offset          0.05°",
+          "Athwartship offset: -0.12°", "transducer tilt 2.5°")
+check("a bare decimal position is still masked next to instrument settings",
+      all(nets_count_coords(c("Station at -17.2543°", "offset 14.52°N")) == 1))
 check("sub-degree positions are masked", all(nets_count_coords(masked) >= 1))
 check("whole degrees, temperatures and ordinary numbers are kept", all(nets_count_coords(kept) == 0))
 check("whole degrees are masked when asked", nets_count_coords("21\u00B0N", keep_whole_degree = FALSE) == 1)
@@ -189,6 +193,12 @@ expect_error("a wrong key is reported as a signature problem",
 Sys.unsetenv(c("NETS_CONFIG", "NETS_RS_KEY"))
 expect_error("a missing key explains how to store it (not in chat)",
              nets_rs_key("nobody-synthetic"), "key_set")
+cm <- nets_rs_connection_message("Timeout was reached [rs.example.org]: Connection timed out",
+                                 "https://rs.example.org/api/?user=x&function=do_search&sign=abc123")
+check("an https timeout names the http fallback without leaking the signature",
+      grepl("timed out", cm) && grepl("http://rs.example.org", cm, fixed = TRUE) && !grepl("sign=", cm))
+check("an unresolvable name points to the network or VPN",
+      grepl("VPN", nets_rs_connection_message("Could not resolve host: rs.example.org", "http://rs.example.org/api/?x")))
 file.remove(file.path(sd, got$file)); file.remove(file.path(sd, "sources", "resourcespace.csv"))
 
 # ---- StoX outputs -------------------------------------------------------------------
@@ -271,7 +281,6 @@ found <- which(txt == "# What the survey found")
 body_ok <- c(txt[1:found], "",
              "In Alphaland the acoustic biomass of sardinella was `r v(\"E001\")` `r cite(\"E001\")`.", "",
              txt[(found + 1):length(txt)])
-body_ok <- str_replace(body_ok, fixed("used_ids <- character()"), "used_ids <- c(\"E001\")")
 writeLines(body_ok, draft)
 
 # The template must knit (qmd chunks are plain knitr chunks).
@@ -283,7 +292,10 @@ knitted <- readLines(md)
 check("template knits and pulls values from the evidence log", any(str_detect(knitted, fixed("412,000 tonnes (report.pdf, p. 2, Table 3)"))))
 check("clearance statement names cleared and pending areas",
       any(str_detect(knitted, "Alphaland")) && any(str_detect(knitted, "Results for Betaland are not included in this synthesis")))
-check("evidence annex is rendered", any(str_detect(knitted, "E001.*Acoustic biomass, North")))
+check("evidence annex lists the ids used in the text, without listing them by hand",
+      any(str_detect(knitted, "E001.*Acoustic biomass, North")))
+check("area lists read naturally",
+      nets_and("A") == "A" && nets_and(c("A", "B")) == "A and B" && nets_and(c("A", "B", "C")) == "A, B and C")
 invisible(file.remove(md))
 
 r <- nets_release_check(sd, "CECAF", draft)

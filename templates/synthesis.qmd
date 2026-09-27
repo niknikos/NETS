@@ -33,18 +33,21 @@ manifest <- nets_read_manifest(params$survey_dir)
 ev <- nets_ev_load(file.path(params$survey_dir, "evidence", "evidence-log.csv"), manifest)
 clearance <- nets_clearance(manifest) |> filter(body == str_to_upper(params$body))
 
-# v("E###") gives the value with its unit; cite("E###") gives its source.
-v <- function(id, ...) nets_ev_value(ev, id, ...)
-cite <- function(id, ...) nets_ev_cite(ev, id, ...)
-used_ids <- character()   # add every id you use, for the evidence annex
+# v("E###") gives the value with its unit; cite("E###") gives its source. Every id they
+# are called with is recorded in used_ids for the evidence annex; use(ids) records ids
+# that a table chunk reads in some other way.
+used_ids <- character()
+use <- function(ids) used_ids <<- union(used_ids, ids)
+v <- function(id, ...) { use(id); nets_ev_value(ev, id, ...) }
+cite <- function(id, ...) { use(id); nets_ev_cite(ev, id, ...) }
 ```
 
 <!--
 Guidance for whoever drafts this (person or agent) — delete before sending.
 
 * Every number comes from the evidence log, written as inline R: v("E###") for the value
-  and cite("E###") for its source, each wrapped in backtick-r. Do not type values, and add
-  each id used to `used_ids` in the setup chunk.
+  and cite("E###") for its source, each wrapped in backtick-r. Do not type values. Ids used
+  through v() and cite() go into the annex automatically; call use() for any others.
 * Keep "What the survey found" to evidence. Put reasoning in "Interpretation", and give
   alternative explanations where they exist.
 * Say what the body can and cannot use the results for. Name comparability breaks
@@ -99,9 +102,9 @@ pending <- clearance |> filter(!status %in% c("cleared", "not_required"))
 ```
 
 The results presented here were collected under the EAF-Nansen Programme. Results for
-`r if (nrow(cleared)) paste(cleared$area_name, collapse = ", ") else "no area"`
+`r if (nrow(cleared)) nets_and(cleared$area_name) else "no area"`
 are presented with the agreement of the respective data owners.
-`r if (nrow(pending)) paste0("Results for ", paste(pending$area_name, collapse = ", "), " are not included in this synthesis.") else ""`
+`r if (nrow(pending)) paste0("Results for ", nets_and(pending$area_name), " are not included in this synthesis.") else ""`
 Requests for the underlying data should be addressed to the data owners.
 
 # Annex: evidence used {.appendix}
@@ -109,8 +112,8 @@ Requests for the underlying data should be addressed to the data owners.
 ```{r}
 #| label: evidence-annex
 if (length(used_ids)) {
-  knitr::kable(nets_ev_annex(ev, used_ids))
+  knitr::kable(nets_ev_annex(ev, sort(used_ids)))
 } else {
-  cat("List the evidence ids used in `used_ids` in the setup chunk.")
+  cat("No evidence ids were used.")
 }
 ```
