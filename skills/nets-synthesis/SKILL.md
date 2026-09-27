@@ -55,8 +55,12 @@ before drafting.
 ### Several surveys: a synthesis project
 
 ```bash
-Rscript "<nets_path>/scripts/nets_project.R" new "<name>" <BODY> <survey_id> <survey_id> [...]
+Rscript "<nets_path>/scripts/nets_project.R" new "<name>" <BODY> <survey_id> <survey_id> [...] [--areas ID,ID,...]
 ```
+
+`--areas` (or `areas:` in `synthesis.yaml`) limits the synthesis to some areas, e.g. a
+subgroup's countries: the clearance statement then names only those areas, and the release
+check warns on values from other areas.
 
 This creates `<workspace>/_syntheses/<name>/` with `synthesis.yaml` (fill in title,
 meeting, agenda item, due date, language) and `evidence/derived-log.csv`. Each survey keeps

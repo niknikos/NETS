@@ -29,6 +29,7 @@ FAIL.
 | FAIL naming | A form of a country name to avoid (e.g. "Ivory Coast"). Use the form given. |
 | FAIL sensitive name | A disputed or sensitive place name. Use it only in wording the data owners have agreed, recorded by the user under `naming.agreed_terms` in `survey.yaml` (or `synthesis.yaml`). Never choose the wording yourself. |
 | WARN naming | A form to check (e.g. "Gambia" without its article), or an area in `survey.yaml` named differently from the register in `nets-knowledge/country-names.yaml`. |
+| WARN scope | A value from an area outside the project's `areas`, or a whole-survey value of a survey that reaches beyond them. Remove it, or confirm it only describes the survey (dates, methods). |
 | WARN verification | Ask the user to check the listed entries against the originals and fill `verified_by`. |
 | WARN hard-coded numbers | Replace with evidence-log values, or confirm each with the user (dates, counts of stations, etc. can be legitimate). |
 | WARN uncleared area named | Confirm that only non-result mentions remain (e.g. "results pending"). |

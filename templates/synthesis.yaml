@@ -16,6 +16,7 @@ agenda_item: ""
 due: ""                             # YYYY-MM-DD
 language: en
 surveys: []                         # survey folder names in the workspace
+areas: []                           # optional: limit to these area ids (e.g. a subgroup's countries); empty = all
 naming:
   agreed_terms: []                  # wording agreed for sensitive places (see survey.yaml)
   avoid: []

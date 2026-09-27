@@ -198,6 +198,14 @@ nets_release_check <- function(dir, body, files, write = TRUE) {
       add("WARN", "clearance", paste0("Whole-survey values (", paste(part$id, collapse = ", "),
                                       ") include areas not yet cleared for ", body, "."))
     }
+    if (length(ctx$scope)) {
+      oos <- used |> filter(out_of_scope %in% TRUE)
+      if (nrow(oos)) add("WARN", "scope", paste0("Evidence from areas outside this synthesis (", paste(ctx$scope, collapse = ", "),
+                                                 "), or derived from it: ", paste0(oos$id, " (", oos$area_id, ")", collapse = ", ")))
+      sp <- used |> filter(scope_partial %in% TRUE)
+      if (nrow(sp)) add("WARN", "scope", paste0("Whole-survey values (", paste(sp$id, collapse = ", "),
+                                                ") include areas outside this synthesis."))
+    }
     sens <- used |> filter(sensitive_src %in% TRUE)
     if (nrow(sens)) add("FAIL", "sensitivity", paste("Sensitive evidence used, or derived from it:", paste(sens$id, collapse = ", "),
                                                      "— remove, or aggregate and re-classify with the data owner."))

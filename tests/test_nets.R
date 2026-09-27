@@ -436,6 +436,22 @@ check("a derived value from an uncleared area fails", any(rp2$findings$level == 
 check("an evidence id without its survey fails in a project",
       any(rp2$findings$level == "FAIL" & str_detect(rp2$findings$detail, "without their survey")))
 
+proj_n <- nets_new_project("Synthetic north", "CECAF", c("TEST-2025", "TEST-2026"), ws, areas = "AAA")
+check("a project can be limited to some areas", identical(nets_read_project(proj_n)$areas, "AAA"))
+nctx <- nets_synthesis_context(proj_n)
+check("a one-survey clearance statement lists areas cleanly",
+      str_detect(nets_clearance_statement(nets_synthesis_context(sd, "CECAF")),
+                 "Results for Alphaland and High seas block are presented") &&
+        !str_detect(nets_clearance_statement(nets_synthesis_context(sd, "CECAF")), "\\(survey"))
+check("the clearance statement covers only the areas in scope",
+      str_detect(nets_clearance_statement(nctx), "Results for Alphaland are presented") &&
+        !str_detect(nets_clearance_statement(nctx), "Betaland"))
+nd <- nets_new_synthesis(proj_n, "CECAF", "Synthetic Author")
+writeLines(c(readLines(nd), "Betaland in 2025: `r v(\"TEST-2025/E002\")`; all areas `r v(\"TEST-2025/E003\")`."), nd)
+rn <- nets_release_check(proj_n, "CECAF", nd, write = FALSE)
+check("values from outside the scope, and whole-survey values reaching beyond it, warn",
+      sum(rn$findings$check == "scope") == 2 && rn$verdict != "FAIL")
+
 m_lo <- manifest; m_lo$context_policy <- "local-only"
 yaml::write_yaml(m_lo, file.path(sd, "survey.yaml"))
 expect_error("local-only survey refuses a cloud-drafted synthesis", nets_new_synthesis(sd, "CECAF", ""), "local-only")

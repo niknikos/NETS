@@ -1,7 +1,7 @@
 # nets_project.R — syntheses of one survey or of several surveys together.
 #
 # Usage:
-#   Rscript nets_project.R new <name> <BODY> <survey_id> [<survey_id> ...]
+#   Rscript nets_project.R new <name> <BODY> <survey_id> <survey_id> [...] [--areas ID,ID,...]
 #
 # A synthesis usually draws on one survey (which may have several reports). A synthesis of
 # several surveys — a time series, or neighbouring surveys combined for one meeting — lives
@@ -36,8 +36,9 @@ if (!exists("nets_names_register", mode = "function")) source(file.path(.nets_sc
 
 nets_is_project <- function(dir) file.exists(file.path(dir, "synthesis.yaml"))
 
+# areas: optional area ids the synthesis is limited to (e.g. a subgroup's countries).
 nets_new_project <- function(name, body, surveys, workspace = NULL, title = "", meeting = "",
-                             language = "en") {
+                             language = "en", areas = character()) {
   body <- str_to_upper(body)
   workspace <- workspace %||% nets_read_config()$workspace_path
   if (is.null(workspace)) stop("No workspace given and no workspace_path in ", nets_config_path(), call. = FALSE)
@@ -63,7 +64,8 @@ nets_new_project <- function(name, body, surveys, workspace = NULL, title = "", 
   tmpl <- tmpl |>
     set("name", q(name)) |> set("body", body) |> set("title", q(title)) |>
     set("meeting", q(meeting)) |> set("language", language) |>
-    set("surveys", paste0("[", paste(map_chr(surveys, q), collapse = ", "), "]"))
+    set("surveys", paste0("[", paste(map_chr(surveys, q), collapse = ", "), "]")) |>
+    set("areas", paste0("[", paste(map_chr(areas, q), collapse = ", "), "]"))
   writeLines(tmpl, file.path(dir, "synthesis.yaml"))
   nets_ev_template(file.path(dir, "evidence", "derived-log.csv"))
   writeLines(c(
@@ -84,6 +86,7 @@ nets_read_project <- function(dir) {
   if (!nzchar(p$body)) stop("synthesis.yaml needs a body.", call. = FALSE)
   p$surveys <- unlist(p$surveys)
   if (length(p$surveys) < 2) stop("synthesis.yaml should list two or more surveys.", call. = FALSE)
+  p$areas <- as.character(unlist(p$areas))
   # Surveys are folder names in the workspace (the parent of _syntheses/), or full paths.
   ws <- dirname(dirname(normalizePath(dir, mustWork = FALSE)))
   p$survey_dirs <- map_chr(p$surveys, ~ if (dir.exists(.x)) .x else file.path(ws, .x))
@@ -163,6 +166,18 @@ nets_synthesis_context <- function(dir, body = NULL) {
   })
   ev$sensitive_src <- ev$sensitivity == "sensitive"
   problems <- character()
+
+  # Scope: a project may be limited to some areas (e.g. a subgroup's countries). Values from
+  # other areas, and whole-survey values of surveys reaching beyond the scope, are flagged.
+  scope <- if (project) p$areas else character()
+  if (length(scope)) {
+    unknown_scope <- setdiff(scope, clearance$area_id)
+    if (length(unknown_scope)) problems <- c(problems, paste("synthesis.yaml areas not found in any survey:", paste(unknown_scope, collapse = ", ")))
+  }
+  ev$out_of_scope <- length(scope) > 0 & nzchar(ev$survey_id) & ev$area_id != "ALL" & !ev$area_id %in% scope
+  ev$scope_partial <- map2_lgl(ev$survey_id, ev$area_id, function(sid, area) {
+    length(scope) > 0 && nzchar(sid) && area == "ALL" && any(!clearance$area_id[clearance$survey_id == sid] %in% scope)
+  })
   d_idx <- which(!nzchar(ev$survey_id))
   if (length(d_idx)) {
     refs <- map(ev$derivation[d_idx], nets_derivation_refs)
@@ -176,6 +191,8 @@ nets_synthesis_context <- function(dir, body = NULL) {
         ev$cleared[d_idx[k]] <- length(refs[[k]]) > 0 && !length(setdiff(refs[[k]], ev$id)) && all(src$cleared %in% TRUE)
         ev$partial[d_idx[k]] <- any(src$partial %in% TRUE)
         ev$sensitive_src[d_idx[k]] <- ev$sensitivity[d_idx[k]] == "sensitive" || any(src$sensitive_src %in% TRUE)
+        ev$out_of_scope[d_idx[k]] <- any(src$out_of_scope %in% TRUE)
+        ev$scope_partial[d_idx[k]] <- any(src$scope_partial %in% TRUE)
       }
     }
   }
@@ -195,13 +212,15 @@ nets_synthesis_context <- function(dir, body = NULL) {
   list(project = project, dir = dir, body = body,
        label = if (project) p$name else ids[1],
        survey_ids = ids, manifests = manifests, clearance = clearance, ev = ev, meta = meta,
-       agreed_terms = as.character(agreed), extra_avoid = extra_avoid, problems = problems,
-       out_dir = file.path(dir, "outputs", body))
+       scope = scope, agreed_terms = as.character(agreed), extra_avoid = extra_avoid,
+       problems = problems, out_dir = file.path(dir, "outputs", body))
 }
 
-# The data-ownership paragraph for a synthesis, from survey.yaml clearance.
+# The data-ownership paragraph for a synthesis, from survey.yaml clearance (areas in the
+# synthesis scope only, when synthesis.yaml sets one).
 nets_clearance_statement <- function(ctx) {
   cl <- ctx$clearance
+  if (length(ctx$scope)) cl <- cl[cl$area_id %in% ctx$scope, ]
   # In a project, an area cleared in some surveys but not others is named with its surveys.
   by_area <- cl |>
     mutate(area_name = factor(area_name, levels = unique(area_name))) |>   # keep survey.yaml order
@@ -209,8 +228,9 @@ nets_clearance_statement <- function(ctx) {
     summarise(all_ok = all(is_cleared), any_ok = any(is_cleared),
               ok_in = paste(survey_id[is_cleared], collapse = ", "), .groups = "drop") |>
     mutate(area_name = as.character(area_name))
+  some <- filter(by_area, !all_ok, any_ok)
   cleared <- c(by_area$area_name[by_area$all_ok],
-               with(filter(by_area, !all_ok, any_ok), paste0(area_name, " (survey ", ok_in, ")")))
+               if (nrow(some)) paste0(some$area_name, " (survey ", some$ok_in, ")"))
   pending <- cl[!cl$is_cleared, ]
   txt <- paste0("The results presented here were collected under the EAF-Nansen Programme. Results for ",
                 if (length(cleared)) nets_and(cleared) else "no area",
@@ -224,9 +244,12 @@ nets_clearance_statement <- function(ctx) {
 
 if (sys.nframe() == 0L) {
   args <- commandArgs(trailingOnly = TRUE)
+  i <- match("--areas", args)
+  areas <- if (is.na(i)) character() else str_split(args[i + 1], ",")[[1]]
+  if (!is.na(i)) args <- args[-c(i, i + 1)]
   if (length(args) < 5 || args[1] != "new") {
-    cat("Usage: Rscript nets_project.R new <name> <BODY> <survey_id> <survey_id> [...]\n")
+    cat("Usage: Rscript nets_project.R new <name> <BODY> <survey_id> <survey_id> [...] [--areas ID,ID,...]\n")
     quit(status = 1)
   }
-  nets_new_project(args[2], args[3], args[-(1:3)])
+  nets_new_project(args[2], args[3], args[-(1:3)], areas = str_trim(areas))
 }
