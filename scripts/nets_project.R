@@ -32,6 +32,7 @@ if (!exists("nets_read_manifest", mode = "function")) {
   })
 }
 if (!exists("nets_ev_load", mode = "function")) source(file.path(.nets_scripts_dir, "nets_evidence.R"))
+if (!exists("nets_names_register", mode = "function")) source(file.path(.nets_scripts_dir, "nets_names.R"))
 
 nets_is_project <- function(dir) file.exists(file.path(dir, "synthesis.yaml"))
 
@@ -181,17 +182,21 @@ nets_synthesis_context <- function(dir, body = NULL) {
 
   meta <- if (project) {
     list(title = p$title %||% "", meeting = p$meeting %||% "", language = p$language %||% "en",
-         due = p$due %||% "")
+         due = p$due %||% "", naming = p$naming %||% list())
   } else {
     m <- manifests[[1]]; r <- m$reporting[[body]]
     list(title = m$title %||% "", meeting = r$meeting %||% "", language = r$language %||% "en",
-         due = r$due %||% "")
+         due = r$due %||% "", naming = m$naming %||% list())
   }
+  agreed <- unique(c(unlist(map(meta$naming$agreed_terms %||% list(), ~ .x$term %||% .x)),
+                     unlist(map(manifests, ~ map(.x$naming$agreed_terms %||% list(), ~ .x$term %||% .x)))))
+  extra_avoid <- c(meta$naming$avoid %||% list(), unlist(map(manifests, ~ .x$naming$avoid %||% list()), recursive = FALSE))
 
   list(project = project, dir = dir, body = body,
        label = if (project) p$name else ids[1],
        survey_ids = ids, manifests = manifests, clearance = clearance, ev = ev, meta = meta,
-       problems = problems, out_dir = file.path(dir, "outputs", body))
+       agreed_terms = as.character(agreed), extra_avoid = extra_avoid, problems = problems,
+       out_dir = file.path(dir, "outputs", body))
 }
 
 # The data-ownership paragraph for a synthesis, from survey.yaml clearance.

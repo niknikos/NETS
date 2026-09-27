@@ -1,6 +1,6 @@
 ---
 name: nets-synthesis
-description: Prepare a synthesis of one or several EAF-Nansen surveys (reports and/or StoX outputs) for a regional body — CECAF (Scientific Sub-Committee or working groups), SEAFO, SIOFA, BCC or SWIOFC — with every number traced to a verified evidence log, evidence kept apart from interpretation, uncertainty and comparability stated, and clearance per survey and country respected. Use when the user asks to report, summarise or synthesise survey results for one of these bodies or a similar meeting.
+description: Prepare a synthesis of one or several EAF-Nansen surveys (reports and/or StoX outputs) for a regional body — CECAF (Scientific Sub-Committee or working groups), SEAFO, SIOFA, BCC or SWIOFC — with every number traced to a verified evidence log, evidence kept apart from interpretation, uncertainty and comparability stated, clearance per survey and country respected, and countries named as agreed. Use when the user asks to report, summarise or synthesise survey results for one of these bodies or a similar meeting.
 ---
 
 # Prepare a synthesis for a regional body
@@ -89,6 +89,11 @@ Rscript "<nets_path>/scripts/nets_new_synthesis.R" "<dir>" <BODY> "<author>"
 - Only cleared areas. Whole-survey totals only when all constituent areas are cleared.
 - Positions at whole-degree resolution at most, unless the user has agreed otherwise for
   this body (see the body profile's sensitivity notes).
+- **Name countries as `survey.yaml` names its areas** (checked against
+  [`../../nets-knowledge/country-names.yaml`](../../nets-knowledge/country-names.yaml)).
+  Do not name disputed or sensitive places (the register lists them) unless the user has
+  recorded the agreed wording under `naming.agreed_terms`; never choose that wording
+  yourself. In French or Portuguese, use the register's form for that language.
 
 Render when Quarto is available (`quarto render <file>.qmd --to docx` or `--to html`);
 otherwise leave the `.qmd` for the user to render.
@@ -109,4 +114,5 @@ If the work produced something reusable (a pattern for a body's index tables, a 
 way to read a report series' biomass tables), offer to save it as a recipe in
 `cookbook/` (copy `cookbook/_TEMPLATE.md`; code and prose only, never survey values).
 Offer also to update the body profile's "Programme notes" with confirmed, non-confidential
-facts (deadlines, formats, subsidiary body names).
+facts (deadlines, formats, subsidiary body names), and the country register with names the
+programme has confirmed.

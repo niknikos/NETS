@@ -1,6 +1,6 @@
 # 🕸️ NETS — Nansen Evidence & Technical Synthesis
 
-<!-- version -->**Version 0.2.5** (2026-09-27)<!-- /version -->
+<!-- version -->**Version 0.2.6** (2026-09-27)<!-- /version -->
 
 **Help your AI coding agent turn EAF-Nansen survey reports and StoX outputs into careful,
 traceable syntheses for regional bodies — without losing control of partners' data.**
@@ -36,7 +36,9 @@ design: a knowledge pack the agent reads at runtime, not a trained model.
    synthesis project: each survey keeps its own clearance and verified evidence, and a value
    calculated across surveys counts as cleared only if everything it uses is.
 7. **Runs a release check** on the source and the rendered file: precise positions,
-   uncleared or sensitive evidence, unverified values, typed-in numbers and draft markings.
+   uncleared or sensitive evidence, unverified values, country names in forms to avoid,
+   sensitive place names not agreed with the data owners, typed-in numbers and draft
+   markings.
 
 ## 🔒 How the safeguards work — and their limits
 
@@ -52,7 +54,8 @@ therefore relies on these layers:
 | Local redaction | Masks positions, withholds station listings, keeps full text in `local/` | Pattern-based: unusual notations can slip through; the user reviews the log |
 | Clearance register | Results only for areas cleared for that body | Only as current as `survey.yaml` |
 | Evidence log | Numbers traced to page and table, verified by a person | Verification is a human task |
-| Release check | Fails on positions, uncleared or sensitive evidence | Cannot judge figures or indirect disclosure |
+| Country register | Names countries as agreed; sensitive place names need recorded agreement | Written from general knowledge; programme staff confirm |
+| Release check | Fails on positions, uncleared or sensitive evidence, names to avoid | Cannot judge figures or indirect disclosure |
 | Pre-commit hook | Blocks data files and positions in commits | Can be bypassed with `--no-verify` |
 
 Where survey agreements do not allow processing by a cloud provider at all, set
@@ -84,7 +87,7 @@ scripts refuse to handle survey material in a cloud session.
 | [`GETTING-STARTED.md`](GETTING-STARTED.md) | Step-by-step first real test |
 | [`CLAUDE.md`](CLAUDE.md) / [`AGENTS.md`](AGENTS.md) | Agent entry points: confidentiality rules and router |
 | [`skills/`](skills/) | Procedures: install, update, privacy, ingest, StoX, synthesis, release check |
-| [`nets-knowledge/`](nets-knowledge/) | Data governance, evidence standards, report anatomy, StoX, programme context, one profile per body |
+| [`nets-knowledge/`](nets-knowledge/) | Data governance, evidence standards, report anatomy, StoX, programme context, country-name register, one profile per body |
 | [`scripts/`](scripts/) | Local R tools (extraction and redaction, StoX, evidence log, synthesis projects, drafting, release check) |
 | [`templates/`](templates/) | `survey.yaml` and `synthesis.yaml` manifests; the Quarto synthesis template |
 | [`tests/`](tests/) | End-to-end tests on synthetic material generated at run time |
@@ -116,6 +119,9 @@ The workspace for one survey looks like this (outside every repository):
 - **StoX layouts** vary by version and project; NETS discovers tables rather than assuming
   names, but confirm with project owners which output holds the published estimate.
 - **Redaction** reduces risk; it does not replace reading the redaction log.
+- **The country register** (`nets-knowledge/country-names.yaml`) was written from general
+  knowledge of UN and FAO usage. Programme staff should confirm the names (especially French
+  and Portuguese), the forms to avoid and the list of sensitive places.
 
 ## 🧠 It learns from you
 

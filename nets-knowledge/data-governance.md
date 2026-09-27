@@ -44,6 +44,16 @@ observed during a survey, results in areas whose boundaries are disputed, and da
 contributed by third parties (national vessels, observers) under their own terms. When
 naming a disputed or contested area, use the data owner's own terminology and ask.
 
+## Naming countries and places
+
+How a country or territory is named is itself read as a position. NETS keeps a register of
+country names (English, French, Portuguese), forms to avoid and sensitive place names in
+[`country-names.yaml`](country-names.yaml). Each survey's `survey.yaml` names its areas
+(that is what a synthesis prints) and records under `naming.agreed_terms` any wording the
+data owners have agreed for a sensitive place. The release check fails a synthesis that
+uses a form marked "fail" or a sensitive name without agreed wording. The register was
+written from general knowledge; programme staff should confirm it and keep it current.
+
 ## Context policies (per survey)
 
 Reading a report means its text is sent to the model provider for processing. That is

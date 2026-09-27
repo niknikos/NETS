@@ -55,6 +55,14 @@ reporting:
 # in the evidence log names its file, and citations show the label.
 documents: []                       # e.g. - { file: "cruise-report-leg1.pdf", label: "EAF-Nansen/CR/2022/02" }
 
+# How places are named. Area names above are what the synthesis prints; the release check
+# compares them with nets-knowledge/country-names.yaml and flags forms to avoid. Sensitive
+# place names (e.g. disputed territories) fail the release check unless the wording has
+# been agreed with the data owners and recorded here.
+naming:
+  agreed_terms: []                  # e.g. - { term: "...", by: "data owner / programme", date: "YYYY-MM-DD" }
+  avoid: []                         # extra forms to flag for this survey: - { text: "...", say: "...", level: warn }
+
 # Items needing extra care, in your own words. The agent treats these as sensitive even
 # when they appear in aggregated form.
 sensitive_items: []                 # e.g. "exact positions of VME indicator taxa", "Russian-flag data"

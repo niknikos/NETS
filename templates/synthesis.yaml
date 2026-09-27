@@ -16,4 +16,7 @@ agenda_item: ""
 due: ""                             # YYYY-MM-DD
 language: en
 surveys: []                         # survey folder names in the workspace
+naming:
+  agreed_terms: []                  # wording agreed for sensitive places (see survey.yaml)
+  avoid: []
 notes: ""

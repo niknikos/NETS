@@ -1,0 +1,273 @@
+# country-names.yaml — how countries and sensitive places are named in NETS syntheses.
+#
+# STATUS: orientation, written from general knowledge of UN terminology (UNTERM short names)
+# and FAO usage. Programme staff should confirm each entry, especially the French and
+# Portuguese forms, and record changes in git. A survey's own survey.yaml overrides this
+# register: the `name` of each area is what the synthesis prints, and `naming.agreed_terms`
+# records wording the data owners have agreed for sensitive places.
+#
+# The release check (scripts/nets_release_check.R) uses this file to
+#   - FAIL or WARN on forms to avoid (`avoid`), anywhere in the text;
+#   - FAIL on sensitive terms (`sensitive`) unless survey.yaml lists them under
+#     naming.agreed_terms (or WARN, where `level: warn`);
+#   - WARN when an area in survey.yaml whose id is an ISO 3166 alpha-3 code is named
+#     differently from the forms below;
+#   - avoid false alarms from names contained in longer ones ("Guinea" in "Guinea-Bissau",
+#     "Equatorial Guinea", "Gulf of Guinea").
+#
+# Fields per country: en / fr / pt = the form used in running text; `also` = other accepted
+# forms (e.g. with a capital article at the start of a sentence); `avoid` = forms to flag,
+# each either `text` (literal, whole words, any case) or `pattern` (ICU regular expression),
+# with `level` (fail | warn) and `say` (the form to use instead).
+
+countries:
+  # --- Eastern Central Atlantic (CECAF area) --------------------------------------------
+  - iso3: MAR
+    en: Morocco
+    fr: Maroc
+    pt: Marrocos
+  - iso3: MRT
+    en: Mauritania
+    fr: Mauritanie
+    pt: Mauritânia
+  - iso3: SEN
+    en: Senegal
+    fr: Sénégal
+    pt: Senegal
+  - iso3: GMB
+    en: the Gambia
+    fr: la Gambie
+    pt: Gâmbia
+    also: [The Gambia, Gambie, Gambia (the)]
+    avoid:
+      - pattern: '(?<![Tt]he\s{1,6})\bGambia\b(?!\s*\(the\))'
+        level: warn
+        say: the Gambia
+        why: 'The article is part of the name ("the Gambia"; "The Gambia" at the start of a sentence).'
+  - iso3: CPV
+    en: Cabo Verde
+    fr: Cabo Verde
+    pt: Cabo Verde
+    avoid:
+      - text: Cape Verde
+        level: warn
+        say: Cabo Verde
+        why: 'The country has asked to be called Cabo Verde in all languages (UN, 2013). If the peninsula near Dakar is meant, write Cap-Vert.'
+  - iso3: GNB
+    en: Guinea-Bissau
+    fr: Guinée-Bissau
+    pt: Guiné-Bissau
+  - iso3: GIN
+    en: Guinea
+    fr: Guinée
+    pt: Guiné
+    avoid:
+      - pattern: '\bGuin(ea|ée)[- ]Conakry\b'
+        level: warn
+        say: Guinea
+        why: Informal name.
+  - iso3: SLE
+    en: Sierra Leone
+    fr: Sierra Leone
+    pt: Serra Leoa
+  - iso3: LBR
+    en: Liberia
+    fr: Libéria
+    pt: Libéria
+  - iso3: CIV
+    en: Côte d'Ivoire
+    fr: Côte d'Ivoire
+    pt: Côte d'Ivoire
+    also: ["Côte d’Ivoire"]
+    avoid:
+      - text: Ivory Coast
+        level: fail
+        say: Côte d'Ivoire
+        why: The country's official name is used untranslated in all languages.
+      - text: Costa do Marfim
+        level: warn
+        say: Côte d'Ivoire
+        why: Check the Portuguese form the meeting uses.
+      - pattern: '\bCote d.Ivoire\b'
+        level: warn
+        say: Côte d'Ivoire
+        why: Missing circumflex.
+  - iso3: GHA
+    en: Ghana
+    fr: Ghana
+    pt: Gana
+  - iso3: TGO
+    en: Togo
+    fr: Togo
+    pt: Togo
+  - iso3: BEN
+    en: Benin
+    fr: Bénin
+    pt: Benim
+  - iso3: NGA
+    en: Nigeria
+    fr: Nigéria
+    pt: Nigéria
+  - iso3: CMR
+    en: Cameroon
+    fr: Cameroun
+    pt: Camarões
+  - iso3: GNQ
+    en: Equatorial Guinea
+    fr: Guinée équatoriale
+    pt: Guiné Equatorial
+  - iso3: GAB
+    en: Gabon
+    fr: Gabon
+    pt: Gabão
+  - iso3: STP
+    en: Sao Tome and Principe
+    fr: Sao Tomé-et-Principe
+    pt: São Tomé e Príncipe
+  - iso3: COG
+    en: Congo
+    fr: Congo
+    pt: Congo
+    also: [Republic of the Congo]
+    avoid:
+      - pattern: '\bCongo[- ]Brazzaville\b'
+        level: warn
+        say: Congo
+        why: Informal name.
+  - iso3: COD
+    en: Democratic Republic of the Congo
+    fr: République démocratique du Congo
+    pt: República Democrática do Congo
+    avoid:
+      - pattern: '\bD\.?R\.?\s?Congo\b|\bDRC\b|\bCongo[- ]Kinshasa\b'
+        level: warn
+        say: Democratic Republic of the Congo
+        why: Informal or abbreviated name.
+      - text: Zaire
+        level: fail
+        say: Democratic Republic of the Congo
+        why: Former name.
+  - iso3: AGO
+    en: Angola
+    fr: Angola
+    pt: Angola
+  # --- Benguela Current and southeast Atlantic ---------------------------------------------
+  - iso3: NAM
+    en: Namibia
+    fr: Namibie
+    pt: Namíbia
+  - iso3: ZAF
+    en: South Africa
+    fr: Afrique du Sud
+    pt: África do Sul
+  # --- Southwest Indian Ocean ------------------------------------------------------------
+  - iso3: MOZ
+    en: Mozambique
+    fr: Mozambique
+    pt: Moçambique
+  - iso3: MDG
+    en: Madagascar
+    fr: Madagascar
+    pt: Madagáscar
+  - iso3: COM
+    en: the Comoros
+    fr: les Comores
+    pt: Comores
+    also: [The Comoros, Comoros, Comores]
+  - iso3: MUS
+    en: Mauritius
+    fr: Maurice
+    pt: Maurícia
+  - iso3: SYC
+    en: Seychelles
+    fr: Seychelles
+    pt: Seicheles
+  - iso3: KEN
+    en: Kenya
+    fr: Kenya
+    pt: Quénia
+  - iso3: TZA
+    en: United Republic of Tanzania
+    fr: République-Unie de Tanzanie
+    pt: República Unida da Tanzânia
+    also: [Tanzania]
+  - iso3: SOM
+    en: Somalia
+    fr: Somalie
+    pt: Somália
+  - iso3: MDV
+    en: Maldives
+    fr: Maldives
+    pt: Maldivas
+    also: [the Maldives]
+  - iso3: FRA
+    en: France
+    fr: France
+    pt: França
+  - iso3: ESP
+    en: Spain
+    fr: Espagne
+    pt: Espanha
+  - iso3: PRT
+    en: Portugal
+    fr: Portugal
+    pt: Portugal
+
+# Geographic names that contain a country name but are not the country. Listed so that a
+# mention of, say, the Gulf of Guinea is not read as a mention of Guinea.
+features:
+  - Gulf of Guinea
+  - Golfe de Guinée
+  - Golfo da Guiné
+  - Guinea Current
+  - Guinea Dome
+  - Guinea Basin
+  - Guinea Plateau
+  - Senegal River
+  - Gambia River
+  - Congo River
+  - Congo Basin
+  - Canary Current
+  - Benguela Current
+  - Mozambique Channel
+  - Somali Current
+  - Angola Current
+  - Angola Basin
+  - Namibian shelf
+  - Cap-Vert
+
+# Places whose name or status is disputed or politically sensitive. A synthesis may name
+# them only in wording the data owners (and, where relevant, the programme) have agreed;
+# record that wording under naming.agreed_terms in survey.yaml. Until then the release
+# check fails. The entries describe why care is needed, not which position is right.
+sensitive:
+  - terms: [Western Sahara, Sahara occidental, Sara Ocidental, Saara Ocidental, Sahara Occidental]
+    level: fail
+    why: Non-self-governing territory whose status is disputed.
+  - terms: [Moroccan Sahara, Sahara marocain, Saharan Arab Democratic Republic, République arabe sahraouie démocratique, SADR, RASD]
+    level: fail
+    why: Terms associated with one side of the Western Sahara dispute.
+  - terms: [Chagos, Chagos Archipelago, Archipel des Chagos, British Indian Ocean Territory, Diego Garcia]
+    level: fail
+    why: Sovereignty has been contested; follow the wording agreed with the data owners.
+  - terms: [Mayotte]
+    level: fail
+    why: Administered by France and claimed by the Comoros.
+  - terms: [Tromelin]
+    level: fail
+    why: Administered by France and claimed by Mauritius.
+  - terms: [Scattered Islands, Îles Éparses, Iles Eparses, Glorioso Islands, Îles Glorieuses, Juan de Nova, Bassas da India, Europa Island, Île Europa]
+    level: fail
+    why: Administered by France and claimed by Madagascar.
+  - terms: [Somaliland, Puntland]
+    level: fail
+    why: Status within Somalia is politically sensitive.
+  - terms: [Mbanié, Mbanie, Cocotiers, Conga]
+    level: warn
+    why: Islands long disputed between Gabon and Equatorial Guinea; check current wording.
+  - terms: [Bakassi]
+    level: warn
+    why: Former dispute between Cameroon and Nigeria; check current wording.
+  - terms: [disputed area, disputed waters, zone contestée, contested area]
+    level: warn
+    why: Describing an area as disputed is itself a position; use the data owners' wording.

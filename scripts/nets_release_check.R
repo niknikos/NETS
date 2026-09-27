@@ -11,9 +11,12 @@
 #
 # FAIL  position with sub-degree precision; evidence id not in the log (or, in a project,
 #       not qualified with its survey); evidence from an area not cleared for this body, or
-#       derived from such evidence; evidence marked sensitive; local-only survey.
-# WARN  unverified evidence; uncleared area named in text; hard-coded numbers in the
-#       source; draft/restricted markings; report not yet cleared.
+#       derived from such evidence; evidence marked sensitive; local-only survey; a form of a
+#       country name the register marks `fail`; a sensitive place name not agreed in
+#       survey.yaml.
+# WARN  unverified evidence; uncleared area named in text; other forms to avoid; area names
+#       that differ from the register; hard-coded numbers in the source; draft/restricted
+#       markings; report not yet cleared.
 # The check is a safety net, not an approval. The decision to send stays with you.
 
 if (!exists("nets_read_manifest", mode = "function")) {
@@ -77,6 +80,7 @@ nets_release_check <- function(dir, body, files, write = TRUE) {
   body <- ctx$body
   cl_body <- ctx$clearance
   ev <- ctx$ev
+  reg <- nets_names_register()
 
   findings <- list()
   add <- function(level, check, detail, where = "") {
@@ -99,7 +103,11 @@ nets_release_check <- function(dir, body, files, write = TRUE) {
     due <- suppressWarnings(as.Date(ctx$meta$due))
     if (!is.na(due) && due < Sys.Date()) add("WARN", "deadline", paste("Recorded deadline", due, "has passed."))
   }
+  area_naming <- nets_area_name_findings(cl_body, reg)
+  if (nrow(area_naming)) findings[[length(findings) + 1]] <- area_naming
 
+  # Names that must not be read as a mention of an uncleared area ("Guinea" in "Guinea-Bissau").
+  all_names <- c(nets_register_names(reg), cl_body$area_name, unlist(cl_body$aliases))
   used_ids <- character()
   for (f in files) {
     lines <- nets_read_output_text(f)
@@ -128,11 +136,7 @@ nets_release_check <- function(dir, body, files, write = TRUE) {
     # Uncleared areas named in the text.
     for (j in which(!cl_body$is_cleared)) {
       names_j <- unique(c(cl_body$area_name[j], cl_body$aliases[[j]]))
-      names_j <- names_j[nzchar(names_j)]
-      if (!length(names_j)) next
-      pat <- regex(paste0("\\b(", paste(str_replace_all(names_j, "([.()\\[\\]])", "\\\\\\1"), collapse = "|"), ")\\b"),
-                   ignore_case = TRUE)
-      hit <- which(str_detect(text_lines, pat))
+      hit <- nets_lines_naming(text_lines, names_j, all_names)
       if (length(hit)) {
         add("WARN", "uncleared area named",
             paste0(cl_body$area_name[j], if (ctx$project) paste0(" in survey ", cl_body$survey_id[j]) else "",
@@ -140,6 +144,10 @@ nets_release_check <- function(dir, body, files, write = TRUE) {
             paste0(fname, ":", paste(head(hit, 5), collapse = ",")))
       }
     }
+
+    # Country names and sensitive places.
+    nf <- nets_naming_findings(text_lines, fname, reg, ctx$agreed_terms, ctx$extra_avoid)
+    if (nrow(nf)) findings[[length(findings) + 1]] <- nf
 
     # Markings that should not travel.
     mark <- which(str_detect(lines, regex("\\b(draft|restricted|confidential|not for citation|do not cite|internal use)\\b",

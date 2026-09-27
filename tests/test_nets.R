@@ -13,7 +13,7 @@ Sys.setenv(NETS_SYNTHETIC_ONLY = "true")
 
 self <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)[1])
 nets_root_dir <- normalizePath(file.path(dirname(self), ".."))
-for (s in c("nets_common.R", "nets_evidence.R", "nets_project.R", "nets_new_survey.R",
+for (s in c("nets_common.R", "nets_evidence.R", "nets_names.R", "nets_project.R", "nets_new_survey.R",
             "nets_ingest_pdf.R", "nets_stox.R", "nets_release_check.R", "nets_new_synthesis.R",
             "nets_fetch_resourcespace.R")) {
   source(file.path(nets_root_dir, "scripts", s))
@@ -320,6 +320,33 @@ html <- file.path(dirname(draft), "out.html")
 writeLines("<html><body><p>Position 14&deg;30.5'N</p><p>DRAFT</p></body></html>", html)
 r3 <- nets_release_check(sd, "CECAF", html, write = FALSE)
 check("rendered html is scanned", any(r3$findings$check == "coordinates") && any(r3$findings$check == "markings"))
+
+# ---- Country names and sensitive places --------------------------------------------
+reg <- nets_names_register(file.path(nets_root_dir, "nets-knowledge", "country-names.yaml"))
+nm_lines <- c("Catches off Ivory Coast were low.", "In the Gambia, and in Gambia, catches rose.",
+              "Cabo Verde and the Gulf of Guinea.", "Waters off Western Sahara.")
+nf <- nets_naming_findings(nm_lines, "t.md", reg)
+check("a form marked fail is failed", any(nf$level == "FAIL" & nf$check == "naming" & str_detect(nf$detail, "Ivory Coast")))
+check("the Gambia without its article warns", any(nf$level == "WARN" & nf$check == "naming" & str_detect(nf$where, ":2$")))
+check("a sensitive place name fails until agreed", any(nf$level == "FAIL" & nf$check == "sensitive name"))
+nf2 <- nets_naming_findings(nm_lines, "t.md", reg, agreed = "Western Sahara")
+check("agreed wording for a sensitive place passes", !any(nf2$check == "sensitive name"))
+check("correct names raise nothing, also across a line break",
+      !nrow(nets_naming_findings(c("Côte d'Ivoire, the Gambia, Guinea-Bissau, Cabo Verde. Off The",
+                                   "  Gambia catches rose."), "t.md", reg)))
+check("a sensitive name broken across lines is still found",
+      any(nets_naming_findings(c("waters off Western", "Sahara were not surveyed"), "t.md", reg)$check == "sensitive name"))
+gl <- c("Guinea-Bissau waters", "the Gulf of Guinea", "Equatorial Guinea", "off Guinea", "Guinée-Bissau")
+check("a name inside a longer name is not a mention",
+      identical(nets_lines_naming(gl, c("Guinea", "Guinée"), nets_register_names(reg)), 4L))
+an <- nets_area_name_findings(tibble(area_id = c("CIV", "GMB", "AAA"), area_name = c("Ivory Coast", "The Gambia", "Alphaland")), reg)
+check("area names are compared with the register", nrow(an) == 1 && str_detect(an$detail, "CIV"))
+check("country names come in each language", nets_country("GMB", "fr", reg) == "la Gambie")
+
+writeLines(c(body_ok, "Nothing was reported from Ivory Coast."), draft)
+r5 <- nets_release_check(sd, "CECAF", draft, write = FALSE)
+check("the release check fails a form to avoid", r5$verdict == "FAIL" && any(r5$findings$check == "naming"))
+writeLines(body_ok, draft)
 
 # ---- Several reports and several surveys --------------------------------------------
 m_docs <- manifest

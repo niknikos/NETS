@@ -88,7 +88,8 @@ which should end with **"All … checks passed"**.
 ## Step 3 — Register the survey
 
 Say: **"Register survey <id> with NETS"**. The agent creates the survey folder and goes
-through `survey.yaml` with you: areas and data owners, the body you want to test (for
+through `survey.yaml` with you: areas and data owners (EEZs by ISO code, named as in
+[`nets-knowledge/country-names.yaml`](nets-knowledge/country-names.yaml)), the body you want to test (for
 example a CECAF working group), and clearance per area. For this test the areas are
 `cleared`, because the results already are. If the survey has several reports, list them
 under `documents` with the labels citations should use.

@@ -55,8 +55,8 @@ Guidance for whoever drafts this (person or agent) — delete before sending.
   alternative explanations where they exist.
 * Say what the body can and cannot use the results for. Name comparability breaks
   (vessel, gear, echosounder, timing, coverage) plainly.
-* Results for areas whose clearance is not "cleared" must not appear. The clearance
-  statement at the end is generated from survey.yaml.
+* Results for areas whose clearance is not "cleared" must not appear. Name countries as
+  survey.yaml names its areas; sensitive places only in wording agreed in survey.yaml.
 * Adapt section emphasis to the body profile in nets-knowledge/bodies/.
 -->
 

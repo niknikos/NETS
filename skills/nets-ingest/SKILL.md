@@ -23,9 +23,14 @@ Use the programme's survey or cruise identifier. This creates
 Work through it together; do not guess ownership or clearance.
 
 - `areas`: one entry per EEZ, joint zone or high-seas area, with the data owner and any
-  aliases (French/Portuguese names) the release check should recognise.
+  aliases (French/Portuguese names) the release check should recognise. For an EEZ, use
+  the ISO 3166 alpha-3 code as `id` and the name form in
+  [`../../nets-knowledge/country-names.yaml`](../../nets-knowledge/country-names.yaml)
+  (the release check compares them); the `name` is what a synthesis prints.
 - `documents`: when the survey has several reports (legs, national reports, language
   versions), one entry per file with the label citations should use.
+- `naming.agreed_terms`: only if the data owners have agreed wording for a sensitive place
+  (the register lists them). Record who agreed and when; never fill this in yourself.
 - `reporting`: one block per body the user will report to, with the meeting, due date,
   language and **clearance per area** (`cleared` / `pending` / `refused` / `not_required`
   with a scope note). Record who cleared and when.

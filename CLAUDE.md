@@ -60,6 +60,7 @@ are layered:
 | Local extraction; positions masked, station listings withheld | [`scripts/nets_ingest_pdf.R`](scripts/nets_ingest_pdf.R) |
 | StoX detail tables reach you only as aggregates | [`scripts/nets_stox.R`](scripts/nets_stox.R) |
 | Every number from a human-verified evidence log | [`scripts/nets_evidence.R`](scripts/nets_evidence.R) |
+| Countries and sensitive places named as agreed | [`nets-knowledge/country-names.yaml`](nets-knowledge/country-names.yaml), `naming` in `survey.yaml` |
 | Release check before anything is sent | [`scripts/nets_release_check.R`](scripts/nets_release_check.R) |
 | Pre-commit hook against data files and positions | [`.githooks/pre-commit`](.githooks/pre-commit) |
 
@@ -97,8 +98,9 @@ knowledge linked at `~/.claude/nets-knowledge`, configuration in `~/.nets/config
 
 1. Read the survey's `survey.yaml` and `AGENT-READ-POLICY.md` (every survey's, for a
    synthesis of several, plus the project's `synthesis.yaml`).
-2. Read [`nets-knowledge/data-governance.md`](nets-knowledge/data-governance.md) and
-   [`nets-knowledge/evidence-standards.md`](nets-knowledge/evidence-standards.md).
+2. Read [`nets-knowledge/data-governance.md`](nets-knowledge/data-governance.md),
+   [`nets-knowledge/evidence-standards.md`](nets-knowledge/evidence-standards.md) and, for
+   names of countries and places, [`nets-knowledge/country-names.yaml`](nets-knowledge/country-names.yaml).
 3. Read the body profile in [`nets-knowledge/bodies/`](nets-knowledge/bodies/), including
    its "Verify before use" list. Profiles are orientation, not authority.
 4. For reports: [`nets-knowledge/report-anatomy.md`](nets-knowledge/report-anatomy.md). For

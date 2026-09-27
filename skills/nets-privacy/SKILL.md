@@ -35,6 +35,10 @@ skill is the operational summary.
 - **Never include results for an area not cleared for the target body**, including totals
   that contain it and comparisons that reveal it. In a synthesis of several surveys this
   holds per survey: an area cleared in one survey may still be pending in another.
+- **Name countries and places as agreed.** Use the area names in `survey.yaml`; for
+  disputed or sensitive places (listed in
+  [`../../nets-knowledge/country-names.yaml`](../../nets-knowledge/country-names.yaml)) use
+  only wording the user has recorded under `naming.agreed_terms`, never your own choice.
 - **Never send, upload or submit** anything. You prepare drafts and checks; the responsible
   scientist decides and sends through the proper channel.
 - **Never commit survey material** to NETS, BAIT or any project repository.
