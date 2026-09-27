@@ -36,9 +36,13 @@ dir.create(ws, recursive = TRUE)
 # ---- Coordinate patterns ------------------------------------------------------------
 # nets:allow-synthetic (all positions below are invented)
 masked <- c("14\u00B030.5'N", "017\u00B0 15' W", "12\u00B030'15\"S", "14 30.52 N", "N 14\u00B030'",
-            "-17.2543\u00B0", "14.52\u00B0N", "12\u00B030'O")
+            "-17.2543\u00B0", "14.52\u00B0N", "12\u00B030'O",
+            "transect 12\u00B030' north in", "(9\u00B015\u2019 North)", "14\u00B030 nord", "12\u00B045'")
+check("spelled-out hemisphere is masked with the position",
+      nets_redact_text("transect 12\u00B030' north in X")$text == "transect [COORD] in X")
 kept <- c("between 12\u00B0N and 16\u00B0N", "surface temperature 24.5\u00B0C", "biomass 412 000 t",
-          "CV 0.21", "length 23.5 cm", "Table 3.2 Numbers")
+          "CV 0.21", "length 23.5 cm", "Table 3.2 Numbers", "every 2° latitude",
+          "north of 12°N", "17° west")
 check("sub-degree positions are masked", all(nets_count_coords(masked) >= 1))
 check("whole degrees, temperatures and ordinary numbers are kept", all(nets_count_coords(kept) == 0))
 check("whole degrees are masked when asked", nets_count_coords("21\u00B0N", keep_whole_degree = FALSE) == 1)

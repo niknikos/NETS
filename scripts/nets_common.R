@@ -224,8 +224,14 @@ nets_parse_pages <- function(x) {
 .min <- "['\u2032\u2019\u00B4]"                   # minute marks
 .sec <- "(?:\"|\u2033|\u201D|'')"                 # second marks
 .hem <- "[NSEWO]"                                 # O = Oeste / Ouest
+.hem_word <- "(?i:north|south|east|west|nord|sud|est|ouest|norte|sul|leste|oeste)"
 
 nets_coord_regex <- c(
+  # Degrees and minutes with a minute mark are a sub-degree position whatever follows
+  # ("DD°MM' north", or "DD°MM'" alone in a caption); a spelled-out hemisphere is masked with it.
+  deg_min_mark = paste0("(?<![\\d.,])\\d{1,3}\\s{0,2}", .deg, "\\s{0,2}\\d{1,2}(?:[.,]\\d+)?\\s{0,2}", .min,
+                        "(?:\\s{0,2}\\d{1,2}(?:[.,]\\d+)?\\s{0,2}", .sec, ")?(?:\\s{0,2}(?:", .hem, "|", .hem_word, ")\\b)?"),
+  deg_min_word = paste0("(?<![\\d.,])\\d{1,3}\\s{0,2}", .deg, "\\s{0,2}\\d{1,2}(?:[.,]\\d+)?\\s{1,2}", .hem_word, "\\b"),
   deg_min_sec = paste0("(?<![\\d.,])\\d{1,3}\\s{0,2}", .deg, "\\s{0,2}\\d{1,2}(?:[.,]\\d+)?\\s{0,2}(?:",
                        .min, "\\s{0,2})?(?:\\d{1,2}(?:[.,]\\d+)?\\s{0,2}", .sec, "\\s{0,2})?", .hem, "\\b"),
   hem_first   = paste0("\\b", .hem, "\\s{0,2}\\d{1,3}\\s{0,2}", .deg, "\\s{0,2}\\d{1,2}(?:[.,]\\d+)?(?:\\s{0,2}",
