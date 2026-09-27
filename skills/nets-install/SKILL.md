@@ -41,11 +41,16 @@ use aggregates-only by default"**, or **"Stop"**. Record the answer in Step 5.
 
 ## Step 2 — Locate the NETS toolkit
 
-1. If `~/.nets/config.json` has a `nets_path` containing `CLAUDE.md`, `scripts/` and
+1. If the user names a folder ("install NETS from <folder>"), use it. Otherwise, if
+   `~/.nets/config.json` has a `nets_path` containing `CLAUDE.md`, `scripts/` and
    `skills/nets-install/SKILL.md`, reuse it.
-2. Otherwise look for an existing clone (home, Documents, code folders). Early versions lived
-   in a `nets/` folder inside a BAIT clone; if you find one, suggest switching to the
-   standalone repository (https://github.com/niknikos/NETS) and update `nets_path`.
+2. Otherwise look for an existing clone: the current working directory, home, Documents
+   (including `Documents\R projects` and similar), code folders. On Windows the profile
+   folder (`%USERPROFILE%`, where `~/.nets/` lives) and the folder holding the user's
+   documents or clone can differ (e.g. `C:\Users\<id>` and `C:\Users\Administrator\Documents`);
+   never assume the clone is under `~`. Early versions lived in a `nets/` folder inside a
+   BAIT clone; if you find one, suggest switching to the standalone repository
+   (https://github.com/niknikos/NETS) and update `nets_path`.
 3. If none exists, ask where to clone
    (`git clone https://github.com/niknikos/NETS "<path>"`; the repository may be private,
    so the user needs access). **Never** use a filesystem root or system directory
@@ -60,6 +65,9 @@ NETS scripts need R (≥ 4.1) with: `pdftools`, `yaml`, `jsonlite`, `dplyr`, `st
 pages), Quarto (rendering syntheses to Word/HTML), and `curl`, `openssl`, `keyring` (fetching
 reports from ResourceSpace). Check what is missing and offer to
 install it (following BAIT's `r-package-setup` skill conventions, if BAIT is installed).
+
+If `Rscript` is not on the PATH (common on Windows), use its full path
+(`C:\Program Files\R\R-<version>\bin\Rscript.exe`) in every command and tell the user.
 
 ## Step 4 — Workspace for survey material
 
@@ -83,8 +91,14 @@ Write or merge `~/.nets/config.json`:
   "data_agreements_confirmed": true,
   "default_context_policy": "standard",
   "skills_synced_to": ["~/.claude/skills", "~/.codex/skills"],
+  "knowledge_copied": false,
   "installed": "<YYYY-MM-DD>" }
 ```
+
+Set `"knowledge_copied": true` when Step 6 had to copy `nets-knowledge/` instead of linking
+it; updates then re-copy it. On Windows, write this file with the agent's file tool: some
+managed machines run PowerShell in constrained language mode, where .NET calls such as
+`New-Object` fail.
 
 Use `"data_agreements_confirmed": false` and `"default_context_policy": "aggregates-only"`
 when the user chose the second option in Step 1. Save a note to your own long-term memory
@@ -137,6 +151,11 @@ BAIT's `knowledge/`.
   Copy-Item -Recurse -Force "<nets_path>/skills/*" "$HOME/.codex/skills/"
   New-Item -ItemType SymbolicLink -Force -Path "$HOME/.claude/nets-knowledge" -Target "<nets_path>/nets-knowledge"
   New-Item -ItemType SymbolicLink -Force -Path "$HOME/.codex/nets-knowledge" -Target "<nets_path>/nets-knowledge"
+  ```
+  If creating the link fails ("Administrator privilege required"), copy instead and record
+  `"knowledge_copied": true` in the configuration:
+  ```powershell
+  Copy-Item -Recurse -Force "<nets_path>/nets-knowledge" "$HOME/.claude/nets-knowledge"
   ```
 
 Sync only to agents the user has installed.
