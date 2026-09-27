@@ -7,16 +7,18 @@
 # nets_project.R). <file> may be the .qmd/.md source and/or rendered .html, .docx, .pptx or
 # .pdf output; check the source (for evidence tracing) AND every rendered file (for what the
 # body will receive). Writes outputs/<BODY>/release-check.md and exits with status 1 if
-# anything FAILs.
+# anything FAILs. Evidence ids are taken from the files checked and from the
+# <file>.evidence-ids.txt record the templates write at render time (ids built in code are
+# otherwise invisible).
 #
 # FAIL  position with sub-degree precision; evidence id not in the log (or, in a project,
 #       not qualified with its survey); evidence from an area not cleared for this body, or
 #       derived from such evidence; evidence marked sensitive; local-only survey; a form of a
 #       country name the register marks `fail`; a sensitive place name not agreed in
 #       survey.yaml.
-# WARN  unverified evidence; uncleared area named in text; other forms to avoid; area names
-#       that differ from the register; hard-coded numbers in the source; draft/restricted
-#       markings; report not yet cleared.
+# WARN  unverified evidence; no or stale record of the ids used; uncleared area named in
+#       text; other forms to avoid; area names that differ from the register; hard-coded
+#       numbers in the source; draft/restricted markings; report not yet cleared.
 # The check is a safety net, not an approval. The decision to send stays with you.
 
 if (!exists("nets_read_manifest", mode = "function")) {
@@ -137,6 +139,22 @@ nets_release_check <- function(dir, body, files, write = TRUE) {
       ids <- unique(unlist(str_extract_all(lines, "\\bE\\d{3,}\\b")))
     }
     used_ids <- union(used_ids, ids)
+
+    # Ids built in code (helper functions, lookups by claim) do not appear in the source;
+    # the templates record every id used at render time next to the source file.
+    if (str_to_lower(tools::file_ext(f)) %in% c("qmd", "rmd")) {
+      side <- paste0(tools::file_path_sans_ext(f), ".evidence-ids.txt")
+      if (!file.exists(side)) {
+        add("WARN", "evidence", paste0("No record of the evidence ids used when ", fname, " was last rendered (",
+                                       basename(side), "). Render it with a current NETS template, and check the rendered files too."),
+            fname)
+      } else {
+        if (file.mtime(side) < file.mtime(f)) {
+          add("WARN", "evidence", paste0(fname, " changed after it was last rendered; render it again so the ids used are current."), fname)
+        }
+        used_ids <- union(used_ids, str_trim(readLines(side, warn = FALSE)))
+      }
+    }
 
     # Uncleared areas named in the text.
     for (j in which(!cl_body$is_cleared)) {

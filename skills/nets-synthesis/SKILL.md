@@ -41,6 +41,11 @@ before drafting.
 - Log each value you may use in the survey's `evidence/evidence-log.csv`: exact source
   (file name of the report it comes from), page, table, uncertainty, `area_id`,
   sensitivity. Calculate derived values in R and record the derivation.
+- When the published figures cannot be compared as they are (units, averaging, strata),
+  recompute them locally from haul data or StoX outputs with one definition, and log the
+  aggregates as `computed` entries (see evidence-standards). Keep station-level data inside
+  the script; print and log only aggregates. Write the script so a dry run shows results
+  before anything is appended to a log, and so it never overwrites existing entries.
 - Also log the facts needed for the comparability checklist (vessel, gear, acoustic
   equipment, timing, coverage, method), even when qualitative.
 - **Ask the user to verify** the entries against the originals and to fill `verified_by`.
@@ -85,7 +90,9 @@ Rscript "<nets_path>/scripts/nets_new_synthesis.R" "<dir>" <BODY> "<author>" --s
 
 - Every number via inline R from the evidence log (value and citation). Ids used through
   `v()` and `cite()` reach the annex automatically; call `use()` for ids a table chunk reads
-  another way. Never type a value.
+  another way. Never type a value. Keep the evidence annex last: when the draft is rendered
+  it records every id used (`<file>.evidence-ids.txt`), including ids built in code, and
+  the release check relies on that record.
 - **What the survey found**: evidence only. **Interpretation**: reasoning, labelled, with
   alternatives. **Limitations and comparability**: specific, with consequences for the
   body's use. **Implications** and **Points for consideration**: modest, explicit, and

@@ -30,5 +30,7 @@ Honour the survey's `context_policy` (even `aggregates-only` allows StoX summari
 5. **Reconcile** with the report tables where both exist. Log differences instead of
    choosing silently, and ask which source is authoritative.
 6. **Log the values used** in `evidence/evidence-log.csv` with `source_type = stox`, the
-   output file as `source_doc` and process/table as `locator`; derived values get a
-   `derivation`.
+   output file as `source_doc` and process/table as `locator`. Values read from a StoX
+   output table are `reported`; values you summarised or recomputed from StoX (or from
+   haul data) are `computed`, with the method and script in `derivation`; values
+   calculated from other log entries are `derived`.

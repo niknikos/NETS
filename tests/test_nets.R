@@ -452,6 +452,35 @@ rn <- nets_release_check(proj_n, "CECAF", nd, write = FALSE)
 check("values from outside the scope, and whole-survey values reaching beyond it, warn",
       sum(rn$findings$check == "scope") == 2 && rn$verdict != "FAIL")
 
+# ---- Computed evidence and ids built in code -------------------------------------------
+comp <- tibble::tibble(id = "E901", claim = "Catch-rate index, Sardinella, Alphaland, 2026", value = "120", unit = "kg/NM2",
+                       uncertainty = "0.3", uncertainty_type = "CV", species_or_group = "Sardinella", area_id = "AAA",
+                       period = "2026", source_doc = "catchrates-index.csv", page = "", locator = "row AAA",
+                       source_type = "haul_data", evidence_class = "computed", derivation = "", sensitivity = "restricted",
+                       entered_by = "agent", verified_by = "", notes = "")
+write_csv(bind_rows(ev_rows, comp), file.path(sd, "evidence", "comp.csv"), na = "")
+expect_error("computed values must name their method", nets_ev_load(file.path(sd, "evidence", "comp.csv")), "method and script")
+write_csv(bind_rows(ev_rows, mutate(comp, derivation = "compute-catchrates.R: kg per swept area, valid hauls")),
+          file.path(sd, "evidence", "comp.csv"), na = "")
+check("computed values are cited as computed",
+      str_detect(nets_ev_cite(nets_ev_load(file.path(sd, "evidence", "comp.csv")), "E901"), "^\\(computed from catchrates-index.csv"))
+
+hidden <- file.path(dirname(draft), "hidden.qmd")
+writeLines(c(body_ok[1:found], "", "Betaland, looked up in code: `r v(paste0(\"E00\", 2))`.", "",
+             body_ok[(found + 1):length(body_ok)]), hidden)
+rh1 <- nets_release_check(sd, "CECAF", hidden, write = FALSE)
+check("an unrendered draft is flagged, and ids built in code are not yet seen",
+      any(str_detect(rh1$findings$detail, "No record of the evidence ids")) && !any(rh1$findings$check == "clearance"))
+env <- new.env(); env$params <- list(dir = sd, body = "CECAF", nets_path = nets_root_dir)
+invisible(suppressMessages(knitr::knit(hidden, file.path(dirname(draft), "hidden.md"), envir = env, quiet = TRUE)))
+check("rendering records the ids used next to the source", file.exists(sub("\\.qmd$", ".evidence-ids.txt", hidden)))
+rh2 <- nets_release_check(sd, "CECAF", hidden, write = FALSE)
+check("after rendering, an id built in code is checked for clearance",
+      rh2$verdict == "FAIL" && any(rh2$findings$check == "clearance" & str_detect(rh2$findings$detail, "E002")))
+Sys.setFileTime(hidden, Sys.time() + 60)
+rh3 <- nets_release_check(sd, "CECAF", hidden, write = FALSE)
+check("a draft changed after rendering is flagged", any(str_detect(rh3$findings$detail, "changed after it was last rendered")))
+
 m_lo <- manifest; m_lo$context_policy <- "local-only"
 yaml::write_yaml(m_lo, file.path(sd, "survey.yaml"))
 expect_error("local-only survey refuses a cloud-drafted synthesis", nets_new_synthesis(sd, "CECAF", ""), "local-only")

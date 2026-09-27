@@ -87,6 +87,7 @@ log, put a chunk here along these lines (with your ids in `ids`):
 
 ```{r}
 #| label: evidence-annex
+nets_record_used_ids(used_ids)   # lets the release check see ids built in code
 if (length(used_ids)) {
   knitr::kable(nets_ev_annex(ev, sort(used_ids))[, c("ID", "Value", "Source")])
 } else {

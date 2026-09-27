@@ -1,6 +1,6 @@
 # 🕸️ NETS — Nansen Evidence & Technical Synthesis
 
-<!-- version -->**Version 0.2.8** (2026-09-27)<!-- /version -->
+<!-- version -->**Version 0.2.9** (2026-09-27)<!-- /version -->
 
 **Help your AI coding agent turn EAF-Nansen survey reports and StoX outputs into careful,
 traceable syntheses for regional bodies — without losing control of partners' data.**

@@ -15,6 +15,12 @@ interpretation. These standards say how NETS achieves that.
   - `derived` — anything you calculated (a sum, a ratio, a change since a previous survey).
     Record the formula and the source ids in `derivation`, and do the calculation in R in the
     `.qmd` or in the log, not in your head.
+  - `computed` — values NETS calculated locally from haul data (e.g. IMR Biotic) or StoX
+    outputs, when the published figures cannot be used as they are (e.g. catch rates with
+    inconsistent units). `source_type` is `haul_data` or `stox`; `source_doc` names the
+    aggregate file the computation wrote; `derivation` names the method and the script.
+    Only aggregates enter the log. Verifying a computed value means reviewing the method and
+    re-running or spot-checking the script, since there is no page to check it against.
 - `verified_by` stays empty until **a person** has checked the entry against the original
   PDF or StoX output. The release check warns on every unverified entry used. Extraction
   errors are the most likely failure of this whole workflow; this is the control for them.
