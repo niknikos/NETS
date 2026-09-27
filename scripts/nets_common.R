@@ -105,6 +105,12 @@ nets_assert_safe_workspace <- function(path) {
   invisible(p)
 }
 
+# "A", "A and B", "A, B and C" (English; the synthesis language may need its own word).
+nets_and <- function(x, and = "and") {
+  if (length(x) < 2) return(paste(x, collapse = ""))
+  paste(paste(head(x, -1), collapse = ", "), and, tail(x, 1))
+}
+
 nets_slug <- function(x) {
   x |>
     str_to_lower() |>
@@ -225,6 +231,7 @@ nets_parse_pages <- function(x) {
 .sec <- "(?:\"|\u2033|\u201D|'')"                 # second marks
 .hem <- "[NSEWO]"                                 # O = Oeste / Ouest
 .hem_word <- "(?i:north|south|east|west|nord|sud|est|ouest|norte|sul|leste|oeste)"
+.angle_words <- "(?i:beam ?width|angle|offset|tilt|heading|bearing|inclination|pitch|roll)"
 
 nets_coord_regex <- c(
   # Degrees and minutes with a minute mark are a sub-degree position whatever follows
@@ -238,7 +245,11 @@ nets_coord_regex <- c(
                        .min, ")?"),
   deg_min_nosign = paste0("(?<![\\d.,])\\d{1,3}[ -]\\d{1,2}[.,]\\d+\\s{0,2}", .hem, "\\b"),
   decimal_hem = paste0("(?<![\\d.,])-?\\d{1,3}[.,]\\d+\\s{0,2}", .deg, "?\\s{0,2}", .hem, "\\b"),
-  decimal_deg = paste0("(?<![\\d.,])-?\\d{1,3}[.,]\\d+\\s{0,2}", .deg, "(?!\\s{0,2}[CFcf])")
+  # Bare decimal degrees, except instrument angles in gear and echosounder annexes
+  # ("beamwidth 7.1° along ship", "Alongship offset 0.05°"); with a hemisphere they are
+  # still caught by decimal_hem.
+  decimal_deg = paste0("(?<![\\d.,])(?<!", .angle_words, "[\\s:=]{1,40})(?<!", .angle_words, "[\\s:=]{1,40}-)",
+                       "-?\\d{1,3}[.,]\\d+\\s{0,2}", .deg, "(?!\\s{0,2}[CFcf])(?!\\s{0,3}(?i:along|athwart))")
 )
 
 nets_whole_degree_regex <- paste0("(?<![\\d.,])\\d{1,3}\\s{0,2}", .deg, "\\s{0,2}", .hem, "\\b")
