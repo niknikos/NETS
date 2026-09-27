@@ -1,6 +1,6 @@
 ---
 name: nets-synthesis
-description: Prepare a synthesis of one or several EAF-Nansen surveys (reports and/or StoX outputs) for a regional body — CECAF (Scientific Sub-Committee or working groups), SEAFO, SIOFA, BCC or SWIOFC — with every number traced to a verified evidence log, evidence kept apart from interpretation, uncertainty and comparability stated, clearance per survey and country respected, and countries named as agreed. Use when the user asks to report, summarise or synthesise survey results for one of these bodies or a similar meeting.
+description: Prepare a synthesis or slide deck of one or several EAF-Nansen surveys (reports and/or StoX outputs) for a regional body — CECAF (Scientific Sub-Committee or working groups), SEAFO, SIOFA, BCC or SWIOFC — with every number traced to a verified evidence log, evidence kept apart from interpretation, uncertainty and comparability stated, clearance per survey and country respected, and countries named as agreed. Renders to Word, HTML, HTML slides (reveal.js) or PowerPoint. Use when the user asks to report, summarise, synthesise or present survey results for one of these bodies or a similar meeting.
 ---
 
 # Prepare a synthesis for a regional body
@@ -26,7 +26,8 @@ before drafting.
 - Which stocks, species groups or ecosystem themes matter to it. Read the body profile in
   `../../nets-knowledge/bodies/<body>.md` and its "Programme notes"; raise any unchecked
   "Verify before use" item that matters for this submission.
-- Language, length, and whether a body template must be used.
+- The form: a written synthesis, a slide deck, or both; language, length, and whether a
+  body template must be used.
 - **One survey or several?** Several reports of one survey (legs, national reports,
   language versions) stay in that survey. Several *surveys* (a time series, neighbouring
   surveys) need a synthesis project (below).
@@ -71,11 +72,12 @@ its own clearance and verified evidence log; nothing is copied. In the project:
 ## 3. Draft
 
 ```bash
-Rscript "<nets_path>/scripts/nets_new_synthesis.R" "<dir>" <BODY> "<author>"
+Rscript "<nets_path>/scripts/nets_new_synthesis.R" "<dir>" <BODY> "<author>"            # written synthesis
+Rscript "<nets_path>/scripts/nets_new_synthesis.R" "<dir>" <BODY> "<author>" --slides   # slide deck
 ```
 
 `<dir>` is the survey folder or the project folder. This creates
-`outputs/<BODY>/<id>_<BODY>_synthesis.qmd` from the template. Then:
+`outputs/<BODY>/<id>_<BODY>_synthesis.qmd` (or `_slides.qmd`) from the template. Then:
 
 - Every number via inline R from the evidence log (value and citation). Ids used through
   `v()` and `cite()` reach the annex automatically; call `use()` for ids a table chunk reads
@@ -83,7 +85,7 @@ Rscript "<nets_path>/scripts/nets_new_synthesis.R" "<dir>" <BODY> "<author>"
 - **What the survey found**: evidence only. **Interpretation**: reasoning, labelled, with
   alternatives. **Limitations and comparability**: specific, with consequences for the
   body's use. **Implications** and **Points for consideration**: modest, explicit, and
-  inviting discussion.
+  inviting discussion. A deck says the same in fewer words; it keeps its limitations slide.
 - Follow the body profile's emphasis and the register in evidence-standards (context first,
   reasoning explained, consequences stated, no overstatement, no promotional language).
 - Only cleared areas. Whole-survey totals only when all constituent areas are cleared.
@@ -95,13 +97,24 @@ Rscript "<nets_path>/scripts/nets_new_synthesis.R" "<dir>" <BODY> "<author>"
   recorded the agreed wording under `naming.agreed_terms`; never choose that wording
   yourself. In French or Portuguese, use the register's form for that language.
 
-Render when Quarto is available (`quarto render <file>.qmd --to docx` or `--to html`);
-otherwise leave the `.qmd` for the user to render.
+### Render
+
+```bash
+Rscript "<nets_path>/scripts/nets_render.R" "<file>.qmd" --to docx       # Word (default for a synthesis)
+Rscript "<nets_path>/scripts/nets_render.R" "<file>.qmd" --to html       # self-contained HTML page
+Rscript "<nets_path>/scripts/nets_render.R" "<file>_slides.qmd"          # HTML slides (reveal.js; default for a deck)
+Rscript "<nets_path>/scripts/nets_render.R" "<file>_slides.qmd" --to pptx   # PowerPoint
+```
+
+The script finds Quarto (also the copy bundled with RStudio). Where group policy blocks
+Quarto's HTML theme step (common on managed Windows machines), HTML output falls back to R's
+rmarkdown automatically; it needs the R packages `rmarkdown` and, for reveal.js decks,
+`revealjs`. All HTML output is self-contained and loads nothing from the internet.
 
 ## 4. Check and hand over
 
 Run [`../nets-release-check/SKILL.md`](../nets-release-check/SKILL.md) on the `.qmd` **and**
-the rendered file. Resolve every FAIL. Then summarise for the user:
+every rendered file. Resolve every FAIL. Then summarise for the user:
 
 - what the synthesis says in three or four sentences;
 - which areas (in which surveys) are included and which are not, and why;

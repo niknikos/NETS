@@ -1,0 +1,95 @@
+---
+title: "{{title}}"
+subtitle: "{{meeting}}"
+author: "{{author}}"
+date: today
+lang: "{{language}}"
+format:
+  revealjs:
+    embed-resources: true
+    slide-number: true
+    smaller: true
+    scrollable: true
+  pptx: default
+params:
+  dir: "../.."             # the survey (or synthesis project) folder; this file is in <dir>/outputs/<BODY>/
+  body: "{{body}}"
+  nets_path: ""            # leave empty to read nets_path from ~/.nets/config.json
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+nets_path <- params$nets_path
+if (!nzchar(nets_path)) {
+  home <- if (.Platform$OS.type == "windows") Sys.getenv("USERPROFILE") else path.expand("~")
+  nets_path <- jsonlite::read_json(file.path(home, ".nets", "config.json"))$nets_path
+}
+source(file.path(nets_path, "scripts", "nets_project.R"))
+
+ctx <- nets_synthesis_context(params$dir, params$body)
+ev <- ctx$ev
+used_ids <- character()
+use <- function(ids) used_ids <<- union(used_ids, ids)
+v <- function(id, ...) { use(id); nets_ev_value(ev, id, ...) }
+cite <- function(id, ...) { use(id); nets_ev_cite(ev, id, ...) }
+```
+
+<!--
+Guidance for whoever drafts this (person or agent) — delete before sending.
+
+* A deck presents the same evidence as the written synthesis, in fewer words: one message
+  per slide, values via v()/cite() only, sources in small type. Keep uncertainty and
+  limitations on their own slide; do not drop them for brevity.
+* Several surveys: ids are "<survey_id>/E###"; cross-survey values are D###.
+* Render to HTML (reveal.js) or PowerPoint with scripts/nets_render.R, then run the release
+  check on the .qmd AND on every rendered file.
+-->
+
+## Why this survey matters
+
+<!-- The body's question (agenda item, stock, assessment) and what the survey adds. -->
+
+## The survey in brief
+
+<!-- Period, area (whole degrees only), design, effort; a small table if helpful. -->
+
+## Key results
+
+<!-- The few values the body will use, with precision. For a table built from the evidence
+log, put a chunk here along these lines (with your ids in `ids`):
+    ids <- c(...); use(ids)
+    knitr::kable(tibble::tibble(Estimate = purrr::map_chr(ids, ~ nets_ev_row(ev, .x)$claim),
+                                Value = purrr::map_chr(ids, ~ v(.x, uncertainty = TRUE)),
+                                Source = purrr::map_chr(ids, cite)))
+-->
+
+## What the results can and cannot support
+
+<!-- Interpretation, labelled as such, with alternatives. -->
+
+## Limitations and comparability
+
+<!-- Coverage, precision, changes since earlier surveys, and what they mean for use. -->
+
+## Points for consideration
+
+<!-- Modest, explicit questions or proposals for the body. -->
+
+## Data ownership and clearance
+
+`r nets_clearance_statement(ctx)`
+
+## Evidence used
+
+```{r}
+#| label: evidence-annex
+if (length(used_ids)) {
+  knitr::kable(nets_ev_annex(ev, sort(used_ids))[, c("ID", "Value", "Source")])
+} else {
+  cat("No evidence ids were used.")
+}
+```

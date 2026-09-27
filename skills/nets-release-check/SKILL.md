@@ -1,20 +1,21 @@
 ---
 name: nets-release-check
-description: Check an EAF-Nansen survey synthesis before it is sent to a regional body — scan the source and rendered output for precise positions, evidence from areas not cleared for that body, sensitive or unverified evidence, country names in forms to avoid, sensitive place names not agreed with the data owners, typed-in numbers and draft markings, and write a release-check report. Works for a synthesis of one survey or several. Use before any synthesis leaves the user's hands, and whenever the user asks "is this ready to send?".
+description: Check an EAF-Nansen survey synthesis or slide deck before it is sent to a regional body — scan the source and every rendered file (Word, HTML, PowerPoint, PDF) for precise positions, evidence from areas not cleared for that body, sensitive or unverified evidence, country names in forms to avoid, sensitive place names not agreed with the data owners, typed-in numbers and draft markings, and write a release-check report. Use before anything leaves the user's hands, and whenever the user asks "is this ready to send?".
 ---
 
 # Release check
 
 ```bash
 Rscript "<nets_path>/scripts/nets_release_check.R" "<dir>" <BODY> \
-  "<dir>/outputs/<BODY>/<file>.qmd" "<dir>/outputs/<BODY>/<file>.docx"
+  "<dir>/outputs/<BODY>/<file>.qmd" "<dir>/outputs/<BODY>/<file>.docx" "<dir>/outputs/<BODY>/<file>.html"
 ```
 
 `<dir>` is the survey folder, or the synthesis project folder
 (`<workspace>/_syntheses/<name>`) for a synthesis of several surveys. Check the `.qmd`
-(traces evidence ids and typed numbers) **and** the rendered file (what the body will
-actually receive; `.docx`, `.html`, `.pdf` and `.md` are supported). The report is written
-to `outputs/<BODY>/release-check.md`; the exit status is 1 on any FAIL.
+(traces evidence ids and typed numbers) **and** every rendered file the body will receive:
+`.docx`, `.html` (documents and reveal.js decks), `.pptx`, `.pdf` and `.md` are supported.
+The report is written to `outputs/<BODY>/release-check.md`; the exit status is 1 on any
+FAIL.
 
 ## Reading the result
 
@@ -38,7 +39,8 @@ Re-run until there is no FAIL and every WARN is explained.
 ## Limits — say these to the user
 
 The check is a safety net. It cannot judge whether interpretations are sound, whether a
-figure reveals positions, or whether a sentence discloses something indirectly. The
-country register was written from general knowledge and is only as good as its last review
-by programme staff. It does not replace the responsible scientist's reading. **Never send, upload or submit the
-synthesis yourself.**
+figure reveals positions, or whether a sentence discloses something indirectly. Text inside
+images (maps, charts) is not read. The country register was written from general
+knowledge and is only as good as its last review by programme staff. It does not replace
+the responsible scientist's reading. **Never send, upload or submit the synthesis
+yourself.**

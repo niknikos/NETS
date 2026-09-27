@@ -1,13 +1,13 @@
-# nets_new_synthesis.R — start a synthesis draft for one reporting body.
+# nets_new_synthesis.R — start a synthesis draft (document or slides) for one reporting body.
 #
 # Usage:
-#   Rscript nets_new_synthesis.R <survey_dir | project_dir> <BODY> ["<author>"]
+#   Rscript nets_new_synthesis.R <survey_dir | project_dir> <BODY> ["<author>"] [--slides]
 #
 # <survey_dir> is one survey's folder; <project_dir> is a synthesis project combining several
-# surveys (see nets_project.R). Copies templates/synthesis.qmd to
-# outputs/<BODY>/<id>_<BODY>_synthesis.qmd, with title, meeting and language from
-# survey.yaml or synthesis.yaml. Refuses to overwrite a draft, and refuses outright when any
-# survey's context policy is local-only.
+# surveys (see nets_project.R). Copies templates/synthesis.qmd (or synthesis-slides.qmd with
+# --slides) to outputs/<BODY>/<id>_<BODY>_synthesis.qmd (or _slides.qmd), with title, meeting
+# and language from survey.yaml or synthesis.yaml. Refuses to overwrite a draft, and refuses
+# outright when any survey's context policy is local-only.
 
 if (!exists("nets_read_manifest", mode = "function")) {
   local({
@@ -22,7 +22,7 @@ if (!exists("nets_read_manifest", mode = "function")) {
 }
 if (!exists("nets_synthesis_context", mode = "function")) source(file.path(.nets_scripts_dir, "nets_project.R"))
 
-nets_new_synthesis <- function(dir, body = NULL, author = "") {
+nets_new_synthesis <- function(dir, body = NULL, author = "", slides = FALSE) {
   if (!nets_is_project(dir)) {
     m <- nets_read_manifest(dir)
     if (is.null(body) || is.null(m$reporting[[str_to_upper(body)]])) {
@@ -39,12 +39,14 @@ nets_new_synthesis <- function(dir, body = NULL, author = "") {
   body <- ctx$body
   out_dir <- ctx$out_dir
   dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
-  out <- file.path(out_dir, paste0(nets_slug(ctx$label), "_", body, "_synthesis.qmd"))
+  kind <- if (slides) "slides" else "synthesis"
+  out <- file.path(out_dir, paste0(nets_slug(ctx$label), "_", body, "_", kind, ".qmd"))
   if (file.exists(out)) stop("Draft already exists: ", out, call. = FALSE)
 
   title <- if (nzchar(ctx$meta$title)) ctx$meta$title else if (ctx$project) ctx$label else paste("Survey", ctx$label)
   meeting <- if (nzchar(ctx$meta$meeting)) ctx$meta$meeting else body
-  tmpl <- readLines(file.path(nets_root(), "templates", "synthesis.qmd"), warn = FALSE)
+  tmpl_file <- if (slides) "synthesis-slides.qmd" else "synthesis.qmd"
+  tmpl <- readLines(file.path(nets_root(), "templates", tmpl_file), warn = FALSE)
   filled <- tmpl |>
     str_replace_all(fixed("{{title}}"), str_replace_all(title, '"', "'")) |>
     str_replace_all(fixed("{{meeting}}"), str_replace_all(meeting, '"', "'")) |>
@@ -58,9 +60,11 @@ nets_new_synthesis <- function(dir, body = NULL, author = "") {
 
 if (sys.nframe() == 0L) {
   args <- commandArgs(trailingOnly = TRUE)
+  slides <- "--slides" %in% args
+  args <- setdiff(args, "--slides")
   if (length(args) < 2) {
-    cat("Usage: Rscript nets_new_synthesis.R <survey_dir | project_dir> <BODY> [\"<author>\"]\n")
+    cat("Usage: Rscript nets_new_synthesis.R <survey_dir | project_dir> <BODY> [\"<author>\"] [--slides]\n")
     quit(status = 1)
   }
-  nets_new_synthesis(args[1], args[2], if (length(args) > 2) args[3] else "")
+  nets_new_synthesis(args[1], args[2], if (length(args) > 2) args[3] else "", slides = slides)
 }

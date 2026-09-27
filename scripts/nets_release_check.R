@@ -4,10 +4,10 @@
 #   Rscript nets_release_check.R <survey_dir | project_dir> <BODY> <file> [<file> ...]
 #
 # The first argument is a survey folder, or a synthesis project folder (several surveys; see
-# nets_project.R). <file> may be the .qmd/.md source and/or rendered .html, .docx or .pdf
-# output; check the source (for evidence tracing) AND the rendered file (for what the body
-# will receive). Writes outputs/<BODY>/release-check.md and exits with status 1 if anything
-# FAILs.
+# nets_project.R). <file> may be the .qmd/.md source and/or rendered .html, .docx, .pptx or
+# .pdf output; check the source (for evidence tracing) AND every rendered file (for what the
+# body will receive). Writes outputs/<BODY>/release-check.md and exits with status 1 if
+# anything FAILs.
 #
 # FAIL  position with sub-degree precision; evidence id not in the log (or, in a project,
 #       not qualified with its survey); evidence from an area not cleared for this body, or
@@ -39,20 +39,25 @@ nets_read_output_text <- function(file) {
   if (ext %in% c("html", "htm")) {
     x <- paste(readLines(file, warn = FALSE, encoding = "UTF-8"), collapse = "\n")
     x <- str_remove_all(x, regex("<(script|style)[^>]*>.*?</\\1>", dotall = TRUE, ignore_case = TRUE))
-    x <- str_replace_all(x, regex("<br\\s*/?>|</(p|div|li|tr|h[1-6])>", ignore_case = TRUE), "\n")
+    x <- str_replace_all(x, regex("<br\\s*/?>|</(p|div|li|tr|h[1-6]|section)>", ignore_case = TRUE), "\n")
     x <- str_remove_all(x, "<[^>]+>")
     x <- str_replace_all(x, c("&deg;" = "°", "&#176;" = "°", "&amp;" = "&", "&nbsp;" = " ",
                               "&prime;" = "′", "&#39;" = "'", "&quot;" = "\""))
     return(str_split(x, "\n")[[1]])
   }
-  if (ext == "docx") {
+  if (ext %in% c("docx", "pptx")) {
     tmp <- tempfile()
     on.exit(unlink(tmp, recursive = TRUE))
-    utils::unzip(file, files = "word/document.xml", exdir = tmp)
-    x <- paste(readLines(file.path(tmp, "word", "document.xml"), warn = FALSE, encoding = "UTF-8"), collapse = "")
-    x <- str_replace_all(x, "</w:p>", "\n")
-    x <- str_remove_all(x, "<[^>]+>")
-    return(str_split(x, "\n")[[1]])
+    parts <- utils::unzip(file, list = TRUE)$Name
+    parts <- if (ext == "docx") "word/document.xml" else
+      parts[str_detect(parts, "^ppt/(slides/slide|notesSlides/notesSlide)\\d+\\.xml$")]
+    utils::unzip(file, files = parts, exdir = tmp)
+    out <- map(parts, function(p) {
+      x <- paste(readLines(file.path(tmp, p), warn = FALSE, encoding = "UTF-8"), collapse = "")
+      x <- str_replace_all(x, "</(w|a):p>", "\n")
+      str_split(str_remove_all(x, "<[^>]+>"), "\n")[[1]]
+    })
+    return(unlist(out))
   }
   if (ext == "pdf") return(unlist(str_split(pdftools::pdf_text(file), "\n")))
   stop("Unsupported file type: ", file, call. = FALSE)

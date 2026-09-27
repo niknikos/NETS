@@ -1,6 +1,6 @@
 # 🕸️ NETS — Nansen Evidence & Technical Synthesis
 
-<!-- version -->**Version 0.2.6** (2026-09-27)<!-- /version -->
+<!-- version -->**Version 0.2.7** (2026-09-27)<!-- /version -->
 
 **Help your AI coding agent turn EAF-Nansen survey reports and StoX outputs into careful,
 traceable syntheses for regional bodies — without losing control of partners' data.**
@@ -29,13 +29,14 @@ design: a knowledge pack the agent reads at runtime, not a trained model.
    aggregates (stratum, area, species, length group) to the agent.
 4. **Builds an evidence log**: every number in a synthesis is drawn from a logged entry with
    its source page and table, marked reported or derived, and checked by a person.
-5. **Drafts the synthesis** in Quarto (Word/HTML) with evidence and interpretation kept
-   apart, uncertainty and comparability stated, and a clearance statement generated from
-   the manifest.
+5. **Drafts the synthesis** in Quarto with evidence and interpretation kept apart,
+   uncertainty and comparability stated, and a clearance statement generated from the
+   manifest — as a document (Word, HTML) or a slide deck (HTML reveal.js, PowerPoint). HTML
+   is self-contained and also renders where group policy blocks Quarto's HTML step.
 6. **Combines several surveys** when needed (a time series, neighbouring surveys) in a
    synthesis project: each survey keeps its own clearance and verified evidence, and a value
    calculated across surveys counts as cleared only if everything it uses is.
-7. **Runs a release check** on the source and the rendered file: precise positions,
+7. **Runs a release check** on the source and every rendered file: precise positions,
    uncleared or sensitive evidence, unverified values, country names in forms to avoid,
    sensitive place names not agreed with the data owners, typed-in numbers and draft
    markings.
@@ -88,8 +89,8 @@ scripts refuse to handle survey material in a cloud session.
 | [`CLAUDE.md`](CLAUDE.md) / [`AGENTS.md`](AGENTS.md) | Agent entry points: confidentiality rules and router |
 | [`skills/`](skills/) | Procedures: install, update, privacy, ingest, StoX, synthesis, release check |
 | [`nets-knowledge/`](nets-knowledge/) | Data governance, evidence standards, report anatomy, StoX, programme context, country-name register, one profile per body |
-| [`scripts/`](scripts/) | Local R tools (extraction and redaction, StoX, evidence log, synthesis projects, drafting, release check) |
-| [`templates/`](templates/) | `survey.yaml` and `synthesis.yaml` manifests; the Quarto synthesis template |
+| [`scripts/`](scripts/) | Local R tools (extraction and redaction, StoX, evidence log, synthesis projects, drafting, rendering, release check) |
+| [`templates/`](templates/) | `survey.yaml` and `synthesis.yaml` manifests; Quarto templates for the synthesis and the slide deck |
 | [`tests/`](tests/) | End-to-end tests on synthetic material generated at run time |
 | [`cookbook/`](cookbook/) | Reusable recipes (grows with use) |
 
@@ -103,7 +104,7 @@ The workspace for one survey looks like this (outside every repository):
   local/                 unredacted extracted text           (agent never reads)
   context/               redacted text, indexes, StoX inventory and summaries
   evidence/              evidence-log.csv
-  outputs/<BODY>/        synthesis drafts and release checks
+  outputs/<BODY>/        synthesis drafts, slide decks and release checks
 
 <workspace>/_syntheses/<name>/      (only for a synthesis of several surveys)
   synthesis.yaml         body, meeting, member surveys

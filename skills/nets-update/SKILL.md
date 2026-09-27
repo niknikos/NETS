@@ -15,6 +15,8 @@ description: Update NETS (the EAF-Nansen survey synthesis toolkit) to the latest
    no action. If the configuration says `"knowledge_copied": true` (or `nets-knowledge` in
    the skills' parent folder is a plain folder rather than a link), re-copy it:
    `Copy-Item -Recurse -Force "<nets_path>/nets-knowledge/*" "$HOME/.claude/nets-knowledge/"`.
+   New R packages may be needed (e.g. `rmarkdown`, `revealjs`); check against
+   nets-install Step 3.
 5. Run the tests: `Rscript "<nets_path>/tests/test_nets.R"`.
 6. Tell the user what changed (`git log --oneline` since the previous head), especially
    changes to body profiles or safeguards.

@@ -61,7 +61,7 @@ are layered:
 | StoX detail tables reach you only as aggregates | [`scripts/nets_stox.R`](scripts/nets_stox.R) |
 | Every number from a human-verified evidence log | [`scripts/nets_evidence.R`](scripts/nets_evidence.R) |
 | Countries and sensitive places named as agreed | [`nets-knowledge/country-names.yaml`](nets-knowledge/country-names.yaml), `naming` in `survey.yaml` |
-| Release check before anything is sent | [`scripts/nets_release_check.R`](scripts/nets_release_check.R) |
+| Release check before anything is sent (documents, HTML, slides) | [`scripts/nets_release_check.R`](scripts/nets_release_check.R) |
 | Pre-commit hook against data files and positions | [`.githooks/pre-commit`](.githooks/pre-commit) |
 
 None of these is perfect on its own; together they make mistakes unlikely and visible.
@@ -92,7 +92,8 @@ knowledge linked at `~/.claude/nets-knowledge`, configuration in `~/.nets/config
 | Register a survey, add reports (also from ResourceSpace), extract and redact | [`skills/nets-ingest`](skills/nets-ingest/SKILL.md) |
 | Use StoX outputs | [`skills/nets-stox`](skills/nets-stox/SKILL.md) |
 | Prepare a synthesis for a body, of one survey or several | [`skills/nets-synthesis`](skills/nets-synthesis/SKILL.md) |
-| Check a synthesis before sending | [`skills/nets-release-check`](skills/nets-release-check/SKILL.md) |
+| Prepare slides (HTML or PowerPoint) or render to Word/HTML | [`skills/nets-synthesis`](skills/nets-synthesis/SKILL.md) (Render) |
+| Check a synthesis or deck before sending | [`skills/nets-release-check`](skills/nets-release-check/SKILL.md) |
 
 ## Before drafting anything
 

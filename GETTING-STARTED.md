@@ -2,8 +2,8 @@
 
 This walks through a first, low-risk test on real material: one survey whose results are
 already cleared, fetched from ResourceSpace (or copied in by hand), redacted, and turned into
-a draft synthesis. Its purpose is to find out where NETS works and where it needs
-adjusting, before it is used for a live submission.
+a draft synthesis and slide deck. Its purpose is to find out where NETS works and where it
+needs adjusting, before it is used for a live submission.
 
 ## Where to run it — this matters
 
@@ -34,10 +34,11 @@ below uses them, so NETS works wherever the clone lives. In this guide, `<nets_p
 - **R 4.1 or later.** Install the packages once:
   ```r
   install.packages(c("pdftools", "yaml", "jsonlite", "dplyr", "stringr", "purrr",
-                     "readr", "tibble", "tidyr", "rlang", "knitr",
-                     "curl", "openssl", "keyring"))
+                     "readr", "tibble", "tidyr", "rlang", "knitr", "rmarkdown",
+                     "curl", "openssl", "keyring", "revealjs"))
   ```
-  Quarto is optional (needed only to render the synthesis to Word).
+  Quarto renders Word and PowerPoint; the copy bundled with RStudio is enough, and NETS
+  finds it. `rmarkdown` and `revealjs` render HTML documents and HTML slides.
 - **Model training off.** Check your agent's privacy settings before starting; the install
   step asks you to confirm it.
 
@@ -52,6 +53,9 @@ below uses them, so NETS works wherever the clone lives. In this guide, `<nets_p
   `"C:\Program Files\R\R-4.x.x\bin\Rscript.exe"`.
 - Where symbolic links need administrator rights, the installation copies
   `nets-knowledge/` instead of linking it; the update step then re-copies it.
+- Where group policy forbids running scripts from user folders, Quarto cannot build HTML
+  (its theme step fails). NETS then renders HTML through R's `rmarkdown` instead; Word and
+  PowerPoint are unaffected.
 
 ## Step 1 — Install NETS
 
@@ -89,10 +93,10 @@ which should end with **"All … checks passed"**.
 
 Say: **"Register survey <id> with NETS"**. The agent creates the survey folder and goes
 through `survey.yaml` with you: areas and data owners (EEZs by ISO code, named as in
-[`nets-knowledge/country-names.yaml`](nets-knowledge/country-names.yaml)), the body you want to test (for
-example a CECAF working group), and clearance per area. For this test the areas are
-`cleared`, because the results already are. If the survey has several reports, list them
-under `documents` with the labels citations should use.
+[`nets-knowledge/country-names.yaml`](nets-knowledge/country-names.yaml)), the body you want
+to test (for example a CECAF working group), and clearance per area. For this test the
+areas are `cleared`, because the results already are. If the survey has several reports,
+list them under `documents` with the labels citations should use.
 
 ## Step 4 — Fetch the report
 
@@ -123,11 +127,21 @@ beside them, and note:
 - Are the biomass tables readable, or did extraction scramble columns?
 - Were pages flagged as having no text (scanned)? Try again with `--ocr` if so.
 
-## Step 6 — Draft a synthesis
+## Step 6 — Draft a synthesis and slides
 
-Say: **"Prepare a synthesis of survey <id> for <body>"**. The agent builds the evidence
-log, asks you to verify each entry against the PDF, drafts the `.qmd` and runs the release
-check. Compare the result with what was actually submitted for that survey, if anything was.
+Say: **"Prepare a synthesis of survey <id> for <body>"** (and, if you want one, **"and a
+slide deck"**). The agent builds the evidence log, asks you to verify each entry against
+the PDF, drafts the `.qmd`, renders it and runs the release check. Rendering by hand:
+
+```bash
+Rscript "<nets_path>/scripts/nets_render.R" "<file>.qmd"                      # Word
+Rscript "<nets_path>/scripts/nets_render.R" "<file>.qmd" --to html            # HTML page
+Rscript "<nets_path>/scripts/nets_render.R" "<file>_slides.qmd"               # HTML slides
+Rscript "<nets_path>/scripts/nets_render.R" "<file>_slides.qmd" --to pptx     # PowerPoint
+```
+
+HTML files are self-contained: open them in a browser, offline, or pass them on as one file.
+Compare the result with what was actually submitted for that survey, if anything was.
 
 To combine **several surveys** (e.g. a time series), say **"Prepare a synthesis of surveys
 <id>, <id> for <body>"**; the agent creates a synthesis project

@@ -61,13 +61,18 @@ use aggregates-only by default"**, or **"Stop"**. Record the answer in Step 5.
 ## Step 3 — R packages
 
 NETS scripts need R (≥ 4.1) with: `pdftools`, `yaml`, `jsonlite`, `dplyr`, `stringr`,
-`purrr`, `readr`, `tibble`, `tidyr`, `rlang`, `knitr`. Optional: `tesseract` (OCR of scanned
-pages), Quarto (rendering syntheses to Word/HTML), and `curl`, `openssl`, `keyring` (fetching
-reports from ResourceSpace). Check what is missing and offer to
-install it (following BAIT's `r-package-setup` skill conventions, if BAIT is installed).
+`purrr`, `readr`, `tibble`, `tidyr`, `rlang`, `knitr`, `rmarkdown`. Optional: `tesseract`
+(OCR of scanned pages), `revealjs` (HTML slide decks), `curl`, `openssl`, `keyring`
+(fetching reports from ResourceSpace), `officer` (tests of PowerPoint output), and Quarto
+(Word and PowerPoint; the copy bundled with RStudio is found automatically). Check what is
+missing and offer to install it (following BAIT's `r-package-setup` skill conventions, if
+BAIT is installed).
 
 If `Rscript` is not on the PATH (common on Windows), use its full path
 (`C:\Program Files\R\R-<version>\bin\Rscript.exe`) in every command and tell the user.
+Check that rendering works:
+`Rscript "<nets_path>/scripts/nets_render.R" --help`, then note in the configuration where
+Quarto was found (`quarto_path`), if it is not on the PATH.
 
 ## Step 4 — Workspace for survey material
 
@@ -92,6 +97,7 @@ Write or merge `~/.nets/config.json`:
   "default_context_policy": "standard",
   "skills_synced_to": ["~/.claude/skills", "~/.codex/skills"],
   "knowledge_copied": false,
+  "quarto_path": "",
   "installed": "<YYYY-MM-DD>" }
 ```
 

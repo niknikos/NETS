@@ -15,7 +15,7 @@ self <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)[1
 nets_root_dir <- normalizePath(file.path(dirname(self), ".."))
 for (s in c("nets_common.R", "nets_evidence.R", "nets_names.R", "nets_project.R", "nets_new_survey.R",
             "nets_ingest_pdf.R", "nets_stox.R", "nets_release_check.R", "nets_new_synthesis.R",
-            "nets_fetch_resourcespace.R")) {
+            "nets_fetch_resourcespace.R", "nets_render.R")) {
   source(file.path(nets_root_dir, "scripts", s))
 }
 
@@ -346,7 +346,31 @@ check("country names come in each language", nets_country("GMB", "fr", reg) == "
 writeLines(c(body_ok, "Nothing was reported from Ivory Coast."), draft)
 r5 <- nets_release_check(sd, "CECAF", draft, write = FALSE)
 check("the release check fails a form to avoid", r5$verdict == "FAIL" && any(r5$findings$check == "naming"))
+if (requireNamespace("officer", quietly = TRUE)) {
+  pptx <- file.path(dirname(draft), "deck.pptx")
+  deck <- officer::add_slide(officer::read_pptx(), layout = "Title and Content", master = "Office Theme")
+  deck <- officer::ph_with(deck, "A school at 14°30.5'N off Ivory Coast", location = officer::ph_location_type("body"))
+  print(deck, target = pptx)
+  r6 <- nets_release_check(sd, "CECAF", pptx, write = FALSE)
+  check("PowerPoint decks are scanned", all(c("coordinates", "naming") %in% r6$findings$check))
+}
 writeLines(body_ok, draft)
+
+# ---- Slides and rendering -----------------------------------------------------------
+deck_qmd <- nets_new_synthesis(sd, "CECAF", "Synthetic Author", slides = TRUE)
+check("a slide deck draft is created", str_detect(basename(deck_qmd), "_CECAF_slides\\.qmd$"))
+dtxt <- readLines(deck_qmd)
+kr <- which(dtxt == "## Key results")
+writeLines(c(dtxt[1:kr], "", "Biomass in Alphaland: `r v(\"E001\", uncertainty = TRUE)` `r cite(\"E001\")`", "",
+             dtxt[(kr + 1):length(dtxt)]), deck_qmd)
+if (nzchar(nets_find_pandoc_dir()) && requireNamespace("rmarkdown", quietly = TRUE)) {
+  html <- nets_render(deck_qmd, "revealjs", engine = "rmarkdown", params = list(nets_path = nets_root_dir))
+  h <- paste(readLines(html, warn = FALSE), collapse = "\n")
+  check("slides render to one self-contained HTML deck",
+        str_detect(h, "412,000 tonnes \\(CV 0.21\\)") && !str_detect(h, "(src|href)=\"https?://"))
+  r7 <- nets_release_check(sd, "CECAF", c(deck_qmd, html), write = FALSE)
+  check("a rendered deck passes the release check", r7$verdict != "FAIL")
+}
 
 # ---- Several reports and several surveys --------------------------------------------
 m_docs <- manifest
