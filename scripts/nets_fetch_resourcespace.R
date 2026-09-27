@@ -80,9 +80,33 @@ nets_rs_url <- function(settings, key, fn, params = list()) {
   paste0(settings$base_url, "/api/?", query, "&sign=", sign)
 }
 
+# A connection failure explained in terms the user can act on. Only the address before
+# /api/ is shown, never the query (it carries the signature).
+nets_rs_connection_message <- function(msg, url) {
+  base <- sub("/api/.*$", "", url)
+  hint <- if (grepl("^https://", base)) {
+    paste0(" If the server answers only on plain http, set base_url to ", sub("^https://", "http://", base),
+           " in ", nets_config_path(), " (documents then cross the network unencrypted; the key stays protected),",
+           " or download the reports yourself into sources/reports/.")
+  } else ""
+  reason <- if (grepl("resolve", msg, ignore.case = TRUE)) {
+    "the server name could not be resolved: are you inside the institute's network or VPN?"
+  } else if (grepl("timed? ?out|timeout", msg, ignore.case = TRUE)) {
+    "the connection timed out"
+  } else if (grepl("refused", msg, ignore.case = TRUE)) {
+    "the connection was refused"
+  } else if (grepl("ssl|certificate|tls", msg, ignore.case = TRUE)) {
+    "the secure (https) connection failed"
+  } else {
+    sub("https?://\\S+", "<url>", msg)
+  }
+  paste0("Could not reach ResourceSpace at ", base, ": ", reason, ".", hint)
+}
+
 # Default transport. Error messages never include the URL (it carries the signature).
 nets_rs_http_get <- function(url) {
-  res <- curl::curl_fetch_memory(url)
+  res <- tryCatch(curl::curl_fetch_memory(url),
+                  error = function(e) stop(nets_rs_connection_message(conditionMessage(e), url), call. = FALSE))
   if (res$status_code != 200) stop("ResourceSpace returned HTTP ", res$status_code, call. = FALSE)
   rawToChar(res$content)
 }
