@@ -1,0 +1,19 @@
+# synthesis.yaml — a synthesis project that combines several surveys for one body.
+# Created by: Rscript <nets_path>/scripts/nets_project.R new <name> <BODY> <survey_id> <survey_id> ...
+# Lives in <workspace>/_syntheses/<name>/, never in a git repository.
+#
+# Clearance stays in each member survey's survey.yaml (reporting.<BODY>.clearance), and
+# verification in each survey's evidence log. Values calculated across surveys go in
+# evidence/derived-log.csv here, with ids D001, D002, ... and a derivation naming the
+# qualified ids they use (e.g. "2022402/E030 - 2012401/E018"). A derived value is cleared
+# only if every entry it uses is cleared.
+
+name: ""                            # short name, e.g. "cecaf-demersal-2011-2022"
+body: CECAF
+title: ""
+meeting: ""
+agenda_item: ""
+due: ""                             # YYYY-MM-DD
+language: en
+surveys: []                         # survey folder names in the workspace
+notes: ""

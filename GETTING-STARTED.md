@@ -90,7 +90,8 @@ which should end with **"All … checks passed"**.
 Say: **"Register survey <id> with NETS"**. The agent creates the survey folder and goes
 through `survey.yaml` with you: areas and data owners, the body you want to test (for
 example a CECAF working group), and clearance per area. For this test the areas are
-`cleared`, because the results already are.
+`cleared`, because the results already are. If the survey has several reports, list them
+under `documents` with the labels citations should use.
 
 ## Step 4 — Fetch the report
 
@@ -126,6 +127,11 @@ beside them, and note:
 Say: **"Prepare a synthesis of survey <id> for <body>"**. The agent builds the evidence
 log, asks you to verify each entry against the PDF, drafts the `.qmd` and runs the release
 check. Compare the result with what was actually submitted for that survey, if anything was.
+
+To combine **several surveys** (e.g. a time series), say **"Prepare a synthesis of surveys
+<id>, <id> for <body>"**; the agent creates a synthesis project
+(`<workspace>/_syntheses/<name>/`) in which each survey keeps its own clearance and
+verified evidence.
 
 ## Step 7 — Report what you found
 

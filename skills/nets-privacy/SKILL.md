@@ -33,7 +33,8 @@ skill is the operational summary.
 - **Never print detail tables to the console** when running R (`head()`, `print()`, `View()`
   of station- or individual-level data): console output enters your context.
 - **Never include results for an area not cleared for the target body**, including totals
-  that contain it and comparisons that reveal it.
+  that contain it and comparisons that reveal it. In a synthesis of several surveys this
+  holds per survey: an area cleared in one survey may still be pending in another.
 - **Never send, upload or submit** anything. You prepare drafts and checks; the responsible
   scientist decides and sends through the proper channel.
 - **Never commit survey material** to NETS, BAIT or any project repository.

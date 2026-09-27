@@ -1,6 +1,6 @@
 # 🕸️ NETS — Nansen Evidence & Technical Synthesis
 
-<!-- version -->**Version 0.2.3** (2026-09-27)<!-- /version -->
+<!-- version -->**Version 0.2.5** (2026-09-27)<!-- /version -->
 
 **Help your AI coding agent turn EAF-Nansen survey reports and StoX outputs into careful,
 traceable syntheses for regional bodies — without losing control of partners' data.**
@@ -32,7 +32,10 @@ design: a knowledge pack the agent reads at runtime, not a trained model.
 5. **Drafts the synthesis** in Quarto (Word/HTML) with evidence and interpretation kept
    apart, uncertainty and comparability stated, and a clearance statement generated from
    the manifest.
-6. **Runs a release check** on the source and the rendered file: precise positions,
+6. **Combines several surveys** when needed (a time series, neighbouring surveys) in a
+   synthesis project: each survey keeps its own clearance and verified evidence, and a value
+   calculated across surveys counts as cleared only if everything it uses is.
+7. **Runs a release check** on the source and the rendered file: precise positions,
    uncleared or sensitive evidence, unverified values, typed-in numbers and draft markings.
 
 ## 🔒 How the safeguards work — and their limits
@@ -82,8 +85,8 @@ scripts refuse to handle survey material in a cloud session.
 | [`CLAUDE.md`](CLAUDE.md) / [`AGENTS.md`](AGENTS.md) | Agent entry points: confidentiality rules and router |
 | [`skills/`](skills/) | Procedures: install, update, privacy, ingest, StoX, synthesis, release check |
 | [`nets-knowledge/`](nets-knowledge/) | Data governance, evidence standards, report anatomy, StoX, programme context, one profile per body |
-| [`scripts/`](scripts/) | Local R tools (extraction and redaction, StoX, evidence log, drafting, release check) |
-| [`templates/`](templates/) | `survey.yaml` manifest and the Quarto synthesis template |
+| [`scripts/`](scripts/) | Local R tools (extraction and redaction, StoX, evidence log, synthesis projects, drafting, release check) |
+| [`templates/`](templates/) | `survey.yaml` and `synthesis.yaml` manifests; the Quarto synthesis template |
 | [`tests/`](tests/) | End-to-end tests on synthetic material generated at run time |
 | [`cookbook/`](cookbook/) | Reusable recipes (grows with use) |
 
@@ -98,6 +101,11 @@ The workspace for one survey looks like this (outside every repository):
   context/               redacted text, indexes, StoX inventory and summaries
   evidence/              evidence-log.csv
   outputs/<BODY>/        synthesis drafts and release checks
+
+<workspace>/_syntheses/<name>/      (only for a synthesis of several surveys)
+  synthesis.yaml         body, meeting, member surveys
+  evidence/              derived-log.csv (values calculated across surveys)
+  outputs/<BODY>/        drafts and release checks
 ```
 
 ## ⚠️ Please review before relying on it

@@ -11,7 +11,7 @@ format:
     embed-resources: true
     toc: true
 params:
-  survey_dir: "../.."      # this file lives in <survey_dir>/outputs/<BODY>/
+  dir: "../.."             # the survey (or synthesis project) folder; this file is in <dir>/outputs/<BODY>/
   body: "{{body}}"
   nets_path: ""            # leave empty to read nets_path from ~/.nets/config.json
 execute:
@@ -27,15 +27,16 @@ if (!nzchar(nets_path)) {
   home <- if (.Platform$OS.type == "windows") Sys.getenv("USERPROFILE") else path.expand("~")
   nets_path <- jsonlite::read_json(file.path(home, ".nets", "config.json"))$nets_path
 }
-source(file.path(nets_path, "scripts", "nets_evidence.R"))
+source(file.path(nets_path, "scripts", "nets_project.R"))
 
-manifest <- nets_read_manifest(params$survey_dir)
-ev <- nets_ev_load(file.path(params$survey_dir, "evidence", "evidence-log.csv"), manifest)
-clearance <- nets_clearance(manifest) |> filter(body == str_to_upper(params$body))
+# One survey, or several (a synthesis project): the evidence, clearance and names in one view.
+ctx <- nets_synthesis_context(params$dir, params$body)
+ev <- ctx$ev
+clearance <- ctx$clearance
 
-# v("E###") gives the value with its unit; cite("E###") gives its source. Every id they
-# are called with is recorded in used_ids for the evidence annex; use(ids) records ids
-# that a table chunk reads in some other way.
+# v(id) gives the value with its unit; cite(id) gives its source. In a synthesis of several
+# surveys, ids carry their survey ("<survey_id>/E###") and cross-survey values are D###.
+# Every id used is recorded for the evidence annex; use(ids) records ids a table reads otherwise.
 used_ids <- character()
 use <- function(ids) used_ids <<- union(used_ids, ids)
 v <- function(id, ...) { use(id); nets_ev_value(ev, id, ...) }
@@ -48,12 +49,14 @@ Guidance for whoever drafts this (person or agent) — delete before sending.
 * Every number comes from the evidence log, written as inline R: v("E###") for the value
   and cite("E###") for its source, each wrapped in backtick-r. Do not type values. Ids used
   through v() and cite() go into the annex automatically; call use() for any others.
+* Several surveys: write ids as "<survey_id>/E###"; put values calculated across surveys
+  in the project's evidence/derived-log.csv (ids D###), naming the ids they come from.
 * Keep "What the survey found" to evidence. Put reasoning in "Interpretation", and give
   alternative explanations where they exist.
 * Say what the body can and cannot use the results for. Name comparability breaks
   (vessel, gear, echosounder, timing, coverage) plainly.
 * Results for areas whose clearance is not "cleared" must not appear. The clearance
-  table at the end is generated from survey.yaml.
+  statement at the end is generated from survey.yaml.
 * Adapt section emphasis to the body profile in nets-knowledge/bodies/.
 -->
 
@@ -65,7 +68,8 @@ and what the body is asked to do with it (note, use in assessment, advise, ...).
 # The survey in brief
 
 <!-- Objectives, period, area covered (whole-degree extent only), effort (numbers of
-stations, transect miles), methods. Keep it short and cite the report. -->
+stations, transect miles), methods. Keep it short and cite the report. For several
+surveys, one short paragraph or a table per survey. -->
 
 # What the survey found
 
@@ -95,17 +99,7 @@ question current advice? What should be monitored next? -->
 
 # Data ownership and clearance
 
-```{r}
-#| label: clearance-statement
-cleared <- clearance |> filter(status %in% c("cleared", "not_required"))
-pending <- clearance |> filter(!status %in% c("cleared", "not_required"))
-```
-
-The results presented here were collected under the EAF-Nansen Programme. Results for
-`r if (nrow(cleared)) nets_and(cleared$area_name) else "no area"`
-are presented with the agreement of the respective data owners.
-`r if (nrow(pending)) paste0("Results for ", nets_and(pending$area_name), " are not included in this synthesis.") else ""`
-Requests for the underlying data should be addressed to the data owners.
+`r nets_clearance_statement(ctx)`
 
 # Annex: evidence used {.appendix}
 

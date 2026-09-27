@@ -1,6 +1,6 @@
 ---
 name: nets-synthesis
-description: Prepare a synthesis of an EAF-Nansen survey (reports and/or StoX outputs) for a regional body — CECAF (Scientific Sub-Committee or working groups), SEAFO, SIOFA, BCC or SWIOFC — with every number traced to a verified evidence log, evidence kept apart from interpretation, uncertainty and comparability stated, and clearance per country respected. Use when the user asks to report, summarise or synthesise survey results for one of these bodies or a similar meeting.
+description: Prepare a synthesis of one or several EAF-Nansen surveys (reports and/or StoX outputs) for a regional body — CECAF (Scientific Sub-Committee or working groups), SEAFO, SIOFA, BCC or SWIOFC — with every number traced to a verified evidence log, evidence kept apart from interpretation, uncertainty and comparability stated, and clearance per survey and country respected. Use when the user asks to report, summarise or synthesise survey results for one of these bodies or a similar meeting.
 ---
 
 # Prepare a synthesis for a regional body
@@ -12,10 +12,11 @@ before drafting.
 
 ## 0. Preconditions (stop if any fails)
 
-1. `survey.yaml` exists and has a `reporting` entry for the body, with clearance per area.
-   If not, help the user complete it ([`../nets-ingest/SKILL.md`](../nets-ingest/SKILL.md)).
-2. `context_policy` is not `local-only`. If it is, explain why you cannot draft, and offer
-   structure and wording guidance free of survey content.
+1. Every survey involved has a `survey.yaml` with a `reporting` entry for the body and
+   clearance per area. If not, help the user complete it
+   ([`../nets-ingest/SKILL.md`](../nets-ingest/SKILL.md)).
+2. No survey involved has `context_policy: local-only`. If one has, explain why you cannot
+   draft, and offer structure and wording guidance free of survey content.
 3. Apply [`../nets-privacy/SKILL.md`](../nets-privacy/SKILL.md) throughout.
 
 ## 1. Establish the brief with the user
@@ -26,15 +27,19 @@ before drafting.
   `../../nets-knowledge/bodies/<body>.md` and its "Programme notes"; raise any unchecked
   "Verify before use" item that matters for this submission.
 - Language, length, and whether a body template must be used.
-- Which areas are cleared. Say plainly which results **cannot** be included.
+- **One survey or several?** Several reports of one survey (legs, national reports,
+  language versions) stay in that survey. Several *surveys* (a time series, neighbouring
+  surveys) need a synthesis project (below).
+- Which areas are cleared, in which surveys. Say plainly which results **cannot** be
+  included.
 
 ## 2. Build the evidence
 
 - Read report pages via the index (policy permitting) and StoX summaries
   ([`../nets-stox/SKILL.md`](../nets-stox/SKILL.md)).
-- Log each value you may use in `evidence/evidence-log.csv`: exact source, page, table,
-  uncertainty, `area_id`, sensitivity. Calculate derived values in R and record the
-  derivation.
+- Log each value you may use in the survey's `evidence/evidence-log.csv`: exact source
+  (file name of the report it comes from), page, table, uncertainty, `area_id`,
+  sensitivity. Calculate derived values in R and record the derivation.
 - Also log the facts needed for the comparability checklist (vessel, gear, acoustic
   equipment, timing, coverage, method), even when qualitative.
 - **Ask the user to verify** the entries against the originals and to fill `verified_by`.
@@ -46,13 +51,31 @@ before drafting.
   them from. If you build the first version with a script, make the script refuse to run
   when `verified_by` is filled anywhere. Copy the file before any bulk change.
 
+### Several surveys: a synthesis project
+
+```bash
+Rscript "<nets_path>/scripts/nets_project.R" new "<name>" <BODY> <survey_id> <survey_id> [...]
+```
+
+This creates `<workspace>/_syntheses/<name>/` with `synthesis.yaml` (fill in title,
+meeting, agenda item, due date, language) and `evidence/derived-log.csv`. Each survey keeps
+its own clearance and verified evidence log; nothing is copied. In the project:
+
+- cite survey entries as `<survey_id>/E###` (a bare `E###` fails the release check);
+- log values calculated across surveys (changes between years, combined totals) in
+  `derived-log.csv` with ids `D001`, …, `evidence_class = derived`, `source_doc = derived`,
+  and a `derivation` that names every qualified id used (e.g. `2022402/E030 - 2012401/E018`);
+- a derived value is cleared only if every entry it uses is cleared for the body in its own
+  survey, and sensitive if any of them is sensitive.
+
 ## 3. Draft
 
 ```bash
-Rscript "<nets_path>/scripts/nets_new_synthesis.R" "<survey_dir>" <BODY> "<author>"
+Rscript "<nets_path>/scripts/nets_new_synthesis.R" "<dir>" <BODY> "<author>"
 ```
 
-This creates `outputs/<BODY>/<survey>_<BODY>_synthesis.qmd` from the template. Then:
+`<dir>` is the survey folder or the project folder. This creates
+`outputs/<BODY>/<id>_<BODY>_synthesis.qmd` from the template. Then:
 
 - Every number via inline R from the evidence log (value and citation). Ids used through
   `v()` and `cite()` reach the annex automatically; call `use()` for ids a table chunk reads
@@ -76,7 +99,7 @@ Run [`../nets-release-check/SKILL.md`](../nets-release-check/SKILL.md) on the `.
 the rendered file. Resolve every FAIL. Then summarise for the user:
 
 - what the synthesis says in three or four sentences;
-- which areas are included and which are not, and why;
+- which areas (in which surveys) are included and which are not, and why;
 - unverified evidence entries, open "Verify before use" items and judgement calls you made;
 - that sending it is their decision, through the body's normal channel.
 

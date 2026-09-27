@@ -24,6 +24,8 @@ Work through it together; do not guess ownership or clearance.
 
 - `areas`: one entry per EEZ, joint zone or high-seas area, with the data owner and any
   aliases (French/Portuguese names) the release check should recognise.
+- `documents`: when the survey has several reports (legs, national reports, language
+  versions), one entry per file with the label citations should use.
 - `reporting`: one block per body the user will report to, with the meeting, due date,
   language and **clearance per area** (`cleared` / `pending` / `refused` / `not_required`
   with a scope note). Record who cleared and when.

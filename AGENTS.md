@@ -92,12 +92,13 @@ configuration in `~/.nets/config.json`. Agents without a skills folder read the 
 | Handle survey material safely; clearance and sensitivity questions | [`skills/nets-privacy`](skills/nets-privacy/SKILL.md) |
 | Register a survey, add reports (also from ResourceSpace), extract and redact | [`skills/nets-ingest`](skills/nets-ingest/SKILL.md) |
 | Use StoX outputs | [`skills/nets-stox`](skills/nets-stox/SKILL.md) |
-| Prepare a synthesis for a body | [`skills/nets-synthesis`](skills/nets-synthesis/SKILL.md) |
+| Prepare a synthesis for a body, of one survey or several | [`skills/nets-synthesis`](skills/nets-synthesis/SKILL.md) |
 | Check a synthesis before sending | [`skills/nets-release-check`](skills/nets-release-check/SKILL.md) |
 
 ## Before drafting anything
 
-1. Read the survey's `survey.yaml` and `AGENT-READ-POLICY.md`.
+1. Read the survey's `survey.yaml` and `AGENT-READ-POLICY.md` (every survey's, for a
+   synthesis of several, plus the project's `synthesis.yaml`).
 2. Read [`nets-knowledge/data-governance.md`](nets-knowledge/data-governance.md) and
    [`nets-knowledge/evidence-standards.md`](nets-knowledge/evidence-standards.md).
 3. Read the body profile in [`nets-knowledge/bodies/`](nets-knowledge/bodies/), including

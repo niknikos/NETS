@@ -50,6 +50,11 @@ reporting:
     clearance:
       AAA: { status: pending, by: "", date: "", scope: "" }
 
+# The reports and other documents of this survey, as citations should name them. A survey
+# may have several reports (cruise legs, national reports, language versions); each value
+# in the evidence log names its file, and citations show the label.
+documents: []                       # e.g. - { file: "cruise-report-leg1.pdf", label: "EAF-Nansen/CR/2022/02" }
+
 # Items needing extra care, in your own words. The agent treats these as sensitive even
 # when they appear in aggregated form.
 sensitive_items: []                 # e.g. "exact positions of VME indicator taxa", "Russian-flag data"

@@ -13,8 +13,8 @@ Sys.setenv(NETS_SYNTHETIC_ONLY = "true")
 
 self <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)[1])
 nets_root_dir <- normalizePath(file.path(dirname(self), ".."))
-for (s in c("nets_common.R", "nets_evidence.R", "nets_new_survey.R", "nets_ingest_pdf.R",
-            "nets_stox.R", "nets_release_check.R", "nets_new_synthesis.R",
+for (s in c("nets_common.R", "nets_evidence.R", "nets_project.R", "nets_new_survey.R",
+            "nets_ingest_pdf.R", "nets_stox.R", "nets_release_check.R", "nets_new_synthesis.R",
             "nets_fetch_resourcespace.R")) {
   source(file.path(nets_root_dir, "scripts", s))
 }
@@ -285,7 +285,7 @@ writeLines(body_ok, draft)
 
 # The template must knit (qmd chunks are plain knitr chunks).
 env <- new.env()
-env$params <- list(survey_dir = sd, body = "CECAF", nets_path = nets_root_dir)
+env$params <- list(dir = sd, body = "CECAF", nets_path = nets_root_dir)
 md <- file.path(dirname(draft), "knit-test.md")
 invisible(suppressMessages(knitr::knit(draft, md, envir = env, quiet = TRUE)))
 knitted <- readLines(md)
@@ -320,6 +320,70 @@ html <- file.path(dirname(draft), "out.html")
 writeLines("<html><body><p>Position 14&deg;30.5'N</p><p>DRAFT</p></body></html>", html)
 r3 <- nets_release_check(sd, "CECAF", html, write = FALSE)
 check("rendered html is scanned", any(r3$findings$check == "coordinates") && any(r3$findings$check == "markings"))
+
+# ---- Several reports and several surveys --------------------------------------------
+m_docs <- manifest
+m_docs$documents <- list(list(file = "report.pdf", label = "Cruise report CR/2026/01"))
+check("citations use the document label from survey.yaml",
+      nets_ev_cite(nets_ev_load(ev_path, m_docs), "E001") == "(Cruise report CR/2026/01, p. 2, Table 3)")
+
+sd25 <- nets_new_survey("TEST-2025", ws)
+m25 <- manifest
+m25$survey_id <- "TEST-2025"; m25$report_status <- "cleared"
+m25$reporting$cecaf$clearance$BBB <- list(status = "cleared", by = "BI", date = "2026-08-01", scope = "all")
+yaml::write_yaml(m25, file.path(sd25, "survey.yaml"))
+write_csv(mutate(ev_rows, value = c("400000", "110000", "510000", "masked"), verified_by = "NN"),
+          file.path(sd25, "evidence", "evidence-log.csv"), na = "")
+expect_error("a project needs two or more surveys", nets_new_project("x", "CECAF", "TEST-2026", ws), "two or more")
+expect_error("a project needs clearance for its body in every survey",
+             nets_new_project("x", "SEAFO", c("TEST-2025", "TEST-2026"), ws), "no reporting entry")
+proj <- nets_new_project("Synthetic series", "CECAF", c("TEST-2025", "TEST-2026"), ws, meeting = "Synthetic WG")
+check("a synthesis project is created with its derived log",
+      file.exists(file.path(proj, "synthesis.yaml")) && file.exists(file.path(proj, "evidence", "derived-log.csv")) &&
+        identical(nets_read_project(proj)$surveys, c("TEST-2025", "TEST-2026")))
+d_rows <- tribble(
+  ~id, ~claim, ~value, ~unit, ~uncertainty, ~uncertainty_type, ~species_or_group, ~area_id, ~period,
+  ~source_doc, ~page, ~locator, ~source_type, ~evidence_class, ~derivation, ~sensitivity,
+  ~entered_by, ~verified_by, ~notes,
+  "D001", "Change in biomass, Alphaland", "12000", "tonnes", "", "", "Sardinella", "AAA", "2025-2026",
+  "derived", "", "", "other", "derived", "TEST-2026/E001 - TEST-2025/E001", "restricted", "agent", "NN", "",
+  "D002", "Change in biomass, Betaland", "10000", "tonnes", "", "", "Sardinella", "BBB", "2025-2026",
+  "derived", "", "", "other", "derived", "TEST-2026/E002 - TEST-2025/E002", "restricted", "agent", "NN", ""
+)
+write_csv(d_rows, file.path(proj, "evidence", "derived-log.csv"), na = "")
+pctx <- nets_synthesis_context(proj)
+cl_of <- function(i) pctx$ev$cleared[pctx$ev$id == i]
+check("project evidence ids carry their survey", all(c("TEST-2025/E001", "TEST-2026/E002", "D001") %in% pctx$ev$id))
+check("clearance is per survey and area", cl_of("TEST-2025/E002") && !cl_of("TEST-2026/E002"))
+check("a derived value is cleared only if all its sources are", cl_of("D001") && !cl_of("D002"))
+check("project citations name the survey", str_detect(nets_ev_cite(pctx$ev, "TEST-2026/E001"), "^\\(survey TEST-2026: report\\.pdf"))
+
+pdraft <- nets_new_synthesis(proj, "CECAF", "Synthetic Author")
+check("the project draft lives in the project folder", str_detect(pdraft, "_syntheses") && file.exists(pdraft))
+ptxt <- readLines(pdraft)
+pf <- which(ptxt == "# What the survey found")
+p_ok <- c(ptxt[1:pf], "", "Alphaland: `r v(\"TEST-2026/E001\")` `r cite(\"TEST-2026/E001\")`, a change of `r v(\"D001\")`.", "",
+          ptxt[(pf + 1):length(ptxt)])
+writeLines(p_ok, pdraft)
+env <- new.env()
+env$params <- list(dir = proj, body = "CECAF", nets_path = nets_root_dir)
+pmd <- file.path(dirname(pdraft), "knit-test.md")
+invisible(suppressMessages(knitr::knit(pdraft, pmd, envir = env, quiet = TRUE)))
+pk <- readLines(pmd)
+check("a project synthesis knits with values from several surveys",
+      any(str_detect(pk, fixed("412,000 tonnes (survey TEST-2026: report.pdf, p. 2, Table 3)"))) &&
+        any(str_detect(pk, fixed("12,000 tonnes"))))
+check("the project clearance statement names survey-specific gaps",
+      any(str_detect(pk, fixed("Results for Betaland (survey TEST-2026) are not included"))))
+invisible(file.remove(pmd))
+rp <- nets_release_check(proj, "CECAF", pdraft)
+check("a clean project draft passes with warnings only", rp$verdict == "PASS WITH WARNINGS" &&
+        file.exists(file.path(proj, "outputs", "CECAF", "release-check.md")))
+writeLines(c(p_ok, "Betaland changed by `r v(\"D002\")`.", "See E001."), pdraft)
+rp2 <- nets_release_check(proj, "CECAF", pdraft, write = FALSE)
+check("a derived value from an uncleared area fails", any(rp2$findings$level == "FAIL" & rp2$findings$check == "clearance"))
+check("an evidence id without its survey fails in a project",
+      any(rp2$findings$level == "FAIL" & str_detect(rp2$findings$detail, "without their survey")))
 
 m_lo <- manifest; m_lo$context_policy <- "local-only"
 yaml::write_yaml(m_lo, file.path(sd, "survey.yaml"))

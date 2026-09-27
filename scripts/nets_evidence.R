@@ -52,23 +52,38 @@ nets_ev_template <- function(path) {
   invisible(path)
 }
 
-nets_ev_load <- function(path, manifest = NULL) {
+nets_ev_load <- function(path, manifest = NULL, id_prefix = "E") {
   ev <- read_csv(path, col_types = cols(.default = col_character()), show_col_types = FALSE,
                  na = character())
-  problems <- nets_ev_validate(ev, manifest)
+  problems <- nets_ev_validate(ev, manifest, id_prefix)
   if (length(problems)) {
     stop("Evidence log problems in ", path, ":\n- ", paste(problems, collapse = "\n- "), call. = FALSE)
   }
+  # Citations name each document by the label given under `documents` in survey.yaml (useful
+  # when a survey has several reports), or by its file name.
+  labels <- nets_document_labels(manifest)
+  if (!"source_label" %in% names(ev)) ev$source_label <- character(nrow(ev))
+  ev$source_label <- if_else(nzchar(ev$source_label), ev$source_label,
+                             unname(coalesce(labels[ev$source_doc], ev$source_doc)))
   ev
 }
 
-nets_ev_validate <- function(ev, manifest = NULL) {
+# Named vector file -> label from survey.yaml:
+#   documents:
+#     - { file: "cruise-report.pdf", label: "EAF-Nansen/CR/2022/02" }
+nets_document_labels <- function(manifest) {
+  docs <- manifest$documents %||% list()
+  if (!length(docs)) return(c(x = NA_character_)[0])
+  setNames(map_chr(docs, ~ as.character(.x$label %||% .x$file)), map_chr(docs, ~ as.character(.x$file)))
+}
+
+nets_ev_validate <- function(ev, manifest = NULL, id_prefix = "E") {
   p <- character()
   missing_cols <- setdiff(nets_ev_columns, names(ev))
   if (length(missing_cols)) return(paste("missing columns:", paste(missing_cols, collapse = ", ")))
   if (!nrow(ev)) return(p)
-  bad_id <- ev$id[!str_detect(ev$id, "^E\\d{3,}$")]
-  if (length(bad_id)) p <- c(p, paste("ids must look like E001:", paste(bad_id, collapse = ", ")))
+  bad_id <- ev$id[!str_detect(ev$id, paste0("^", id_prefix, "\\d{3,}$"))]
+  if (length(bad_id)) p <- c(p, paste0("ids must look like ", id_prefix, "001: ", paste(bad_id, collapse = ", ")))
   dup <- unique(ev$id[duplicated(ev$id)])
   if (length(dup)) p <- c(p, paste("duplicated ids:", paste(dup, collapse = ", ")))
   chk <- function(col, allowed) {
@@ -119,8 +134,11 @@ nets_ev_value <- function(ev, id, digits = NULL, big_mark = ",", unit = TRUE, un
 nets_ev_cite <- function(ev, id, style = c("source", "id", "both")) {
   style <- match.arg(style)
   r <- nets_ev_row(ev, id)
-  where <- c(r$source_doc, if (nzchar(r$page)) paste0("p. ", r$page), if (nzchar(r$locator)) r$locator)
+  doc <- if ("source_label" %in% names(r) && nzchar(r$source_label)) r$source_label else r$source_doc
+  where <- c(doc, if (nzchar(r$page)) paste0("p. ", r$page), if (nzchar(r$locator)) r$locator)
   src <- paste(where, collapse = ", ")
+  # In a synthesis of several surveys, say which survey the entry comes from.
+  if ("survey_id" %in% names(r) && isTRUE(r$multi) && nzchar(r$survey_id)) src <- paste0("survey ", r$survey_id, ": ", src)
   if (r$evidence_class == "derived") src <- paste0("derived from ", src)
   switch(style,
          source = paste0("(", src, ")"),
