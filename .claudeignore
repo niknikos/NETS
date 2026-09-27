@@ -1,0 +1,29 @@
+# Files agents should NOT read automatically. Survey material lives in the NETS workspace,
+# outside this repository; these patterns are a second line of defence if any of it is
+# ever placed here. (Claude Code honours .claudeignore; other agents: treat this as the
+# do-not-read list.)
+
+*.pdf
+*.txt
+*.docx
+*.csv
+*.tsv
+*.xlsx
+*.xls
+*.xml
+*.rds
+*.rda
+*.RData
+*.parquet
+*.duckdb
+*.sqlite
+
+workspace/
+sources/
+local/
+context/
+evidence/
+outputs/
+
+# Inside a NETS workspace (outside this repo), agents never read sources/ or local/;
+# see AGENT-READ-POLICY.md in each survey folder.

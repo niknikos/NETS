@@ -1,0 +1,116 @@
+---
+title: "{{title}}"
+subtitle: "Synthesis prepared for {{meeting}}"
+author: "{{author}}"
+date: today
+lang: "{{language}}"
+format:
+  docx:
+    toc: false
+  html:
+    embed-resources: true
+    toc: true
+params:
+  survey_dir: "../.."      # this file lives in <survey_dir>/outputs/<BODY>/
+  body: "{{body}}"
+  nets_path: ""            # leave empty to read nets_path from ~/.nets/config.json
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+nets_path <- params$nets_path
+if (!nzchar(nets_path)) {
+  home <- if (.Platform$OS.type == "windows") Sys.getenv("USERPROFILE") else path.expand("~")
+  nets_path <- jsonlite::read_json(file.path(home, ".nets", "config.json"))$nets_path
+}
+source(file.path(nets_path, "scripts", "nets_evidence.R"))
+
+manifest <- nets_read_manifest(params$survey_dir)
+ev <- nets_ev_load(file.path(params$survey_dir, "evidence", "evidence-log.csv"), manifest)
+clearance <- nets_clearance(manifest) |> filter(body == str_to_upper(params$body))
+
+# v("E###") gives the value with its unit; cite("E###") gives its source.
+v <- function(id, ...) nets_ev_value(ev, id, ...)
+cite <- function(id, ...) nets_ev_cite(ev, id, ...)
+used_ids <- character()   # add every id you use, for the evidence annex
+```
+
+<!--
+Guidance for whoever drafts this (person or agent) — delete before sending.
+
+* Every number comes from the evidence log, written as inline R: v("E###") for the value
+  and cite("E###") for its source, each wrapped in backtick-r. Do not type values, and add
+  each id used to `used_ids` in the setup chunk.
+* Keep "What the survey found" to evidence. Put reasoning in "Interpretation", and give
+  alternative explanations where they exist.
+* Say what the body can and cannot use the results for. Name comparability breaks
+  (vessel, gear, echosounder, timing, coverage) plainly.
+* Results for areas whose clearance is not "cleared" must not appear. The clearance
+  table at the end is generated from survey.yaml.
+* Adapt section emphasis to the body profile in nets-knowledge/bodies/.
+-->
+
+# Purpose
+
+<!-- Why this synthesis is submitted, to which meeting and agenda item/terms of reference,
+and what the body is asked to do with it (note, use in assessment, advise, ...). -->
+
+# The survey in brief
+
+<!-- Objectives, period, area covered (whole-degree extent only), effort (numbers of
+stations, transect miles), methods. Keep it short and cite the report. -->
+
+# What the survey found
+
+<!-- Evidence only, organised by what matters to this body (stocks, species groups,
+ecosystem indicators, VME encounters, ...). Every value via v()/cite(). -->
+
+# Interpretation
+
+<!-- What the results may mean, with the reasoning. Distinguish well-supported readings
+from tentative ones and give alternatives (e.g. distribution shift vs. abundance change
+vs. coverage). -->
+
+# Limitations, uncertainty and comparability
+
+<!-- Precision (CVs, sample sizes), coverage gaps, timing relative to earlier surveys,
+changes in vessel, gear or acoustic equipment, species identification issues, and what
+this means for use in time series or assessments. -->
+
+# Implications for the work of the `r params$body`
+
+<!-- Practical consequences: can the values extend an index series? Do they support or
+question current advice? What should be monitored next? -->
+
+# Points for consideration
+
+<!-- Concrete, modest proposals or questions for the body. Invite discussion. -->
+
+# Data ownership and clearance
+
+```{r}
+#| label: clearance-statement
+cleared <- clearance |> filter(status %in% c("cleared", "not_required"))
+pending <- clearance |> filter(!status %in% c("cleared", "not_required"))
+```
+
+The results presented here were collected under the EAF-Nansen Programme. Results for
+`r if (nrow(cleared)) paste(cleared$area_name, collapse = ", ") else "no area"`
+are presented with the agreement of the respective data owners.
+`r if (nrow(pending)) paste0("Results for ", paste(pending$area_name, collapse = ", "), " are not included in this synthesis.") else ""`
+Requests for the underlying data should be addressed to the data owners.
+
+# Annex: evidence used {.appendix}
+
+```{r}
+#| label: evidence-annex
+if (length(used_ids)) {
+  knitr::kable(nets_ev_annex(ev, used_ids))
+} else {
+  cat("List the evidence ids used in `used_ids` in the setup chunk.")
+}
+```

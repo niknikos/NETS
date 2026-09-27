@@ -1,0 +1,60 @@
+# NETS holds INSTRUCTIONS AND CODE ONLY - never survey material. These rules are a safety
+# net against committing reports, extracts or StoX outputs by accident. Do not loosen them.
+# (The pre-commit hook also refuses these types when force-added.)
+
+# --- Reports, extracts and outputs ---
+*.pdf
+*.txt
+*.docx
+*.doc
+*.pptx
+*.odt
+*.ods
+*.html
+*.htm
+*.zip
+
+# --- Tabular and binary data (StoX outputs, evidence logs, databases) ---
+*.csv
+*.tsv
+*.xlsx
+*.xls
+*.xml
+*.rds
+*.rda
+*.RData
+*.parquet
+*.feather
+*.duckdb
+*.duckdb.wal
+*.sqlite
+*.db
+
+# --- Figures (maps can reveal positions) ---
+*.png
+*.jpg
+*.jpeg
+*.tif
+*.tiff
+*.svg
+
+# --- Workspace folders, if one is ever created here by mistake ---
+workspace/
+sources/
+local/
+context/
+evidence/
+outputs/
+data/
+private/
+scratch/
+
+# --- R / Quarto / OS cruft ---
+.Rproj.user/
+.Rhistory
+.Ruserdata
+*.Rproj
+.quarto/
+*_files/
+.DS_Store
+Thumbs.db

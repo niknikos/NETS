@@ -1,0 +1,64 @@
+# survey.yaml - the manifest for one survey in the NETS workspace.
+#
+# This file records WHO owns the results, WHAT has been cleared for WHICH reporting body,
+# and HOW cautiously an AI agent may handle the material. NETS scripts and the release
+# check read it; an agent must read it before any synthesis. Keep it current: a
+# synthesis is only as safe as the clearance recorded here.
+#
+# It lives in the workspace, never in a git repository.
+
+survey_id: "{{survey_id}}"          # the programme's survey/cruise identifier
+title: ""                           # e.g. "Pelagic ecosystem survey off <region>"
+vessel: "Dr. Fridtjof Nansen"
+dates:
+  start: ""                         # YYYY-MM-DD
+  end: ""
+survey_types: []                    # acoustic | demersal_trawl | ecosystem | oceanography | plankton | pollution | other
+report_series_number: ""            # as printed on the report, if any
+
+# draft           report not yet finalised by the survey team
+# final-uncleared final, but not yet cleared by the data owner(s) for wider use
+# cleared         cleared by the data owner(s) for the uses recorded under `reporting`
+# published       publicly available (a URL or DOI goes under notes)
+report_status: draft
+
+# standard         the agent may read the redacted copies in context/ (the default)
+# aggregates-only  the agent may read only StoX summaries and the index files, not report text
+# local-only       survey agreements do not allow report content to reach a cloud model at all.
+#                  The agent may run NETS scripts and help with structure, but must not read
+#                  context/ or evidence values. Use a local model, or write the synthesis yourself.
+context_policy: standard
+
+# One entry per EEZ, joint zone or high-seas area covered. `id` is used below.
+areas:
+  - id: "AAA"                       # short code, e.g. an ISO-3 country code or "SEAFO-HS"
+    name: ""                        # as it should appear in text
+    aliases: []                     # other spellings the release check should recognise (e.g. French/Portuguese names)
+    type: eez                       # eez | high_seas | joint_zone | other
+    data_owner: ""                  # institution that owns/clears the results for this area
+    sensitivity_notes: ""           # e.g. "positions of VME indicator taxa", "stock under negotiation"
+
+# One block per body you report to. Clearance is recorded per area.
+#   status: cleared | pending | refused | not_required
+#   not_required needs a scope note (e.g. "high-seas results; programme management decision").
+reporting:
+  CECAF:
+    meeting: ""                     # e.g. the working group and year
+    agenda_item: ""
+    due: ""                         # submission deadline, YYYY-MM-DD
+    language: en                    # en | fr | pt
+    clearance:
+      AAA: { status: pending, by: "", date: "", scope: "" }
+
+# Items needing extra care, in your own words. The agent treats these as sensitive even
+# when they appear in aggregated form.
+sensitive_items: []                 # e.g. "exact positions of VME indicator taxa", "Russian-flag data"
+
+# Redaction settings used by nets_ingest_pdf.R.
+redaction:
+  keep_whole_degree_mentions: true  # "between 12 and 16 deg N" stays readable; minute precision is masked
+  withhold_threshold: 6             # position score at which a page is withheld from agent context
+  withhold_pages: {}                # e.g. { "report.pdf": ["45-60", 72] } - always withheld
+  release_pages: {}                 # pages you have checked and want un-withheld (still coordinate-masked)
+
+notes: ""
