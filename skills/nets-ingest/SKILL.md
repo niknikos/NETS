@@ -35,8 +35,27 @@ CECAF working group, or is that still pending?"* Leaving an area `pending` is sa
 
 ## 3. Add the sources
 
-Ask the user to copy the report PDFs into `sources/reports/` and any StoX projects (or their
-`output/` folders) into `sources/stox/`. Copying files is fine; **do not open them**.
+Either the user copies the report PDFs into `sources/reports/` and any StoX projects (or
+their `output/` folders) into `sources/stox/`, or NETS fetches them from a ResourceSpace
+collection (below). Either way, **do not open them**.
+
+### From ResourceSpace (e.g. IMR's document archive)
+
+Works only from a machine inside the institute's network, with the connection set up once
+(nets-install Step 5b). **Never ask the user for a password or API key, and never accept
+one in chat**; if they offer it, stop them and point to `keyring::key_set()` in their own R
+console. The collection number is in the collection's address (`!collection124` → 124).
+
+```bash
+Rscript "<nets_path>/scripts/nets_fetch_resourcespace.R" "<survey_dir>" --collection 124 --list
+Rscript "<nets_path>/scripts/nets_fetch_resourcespace.R" "<survey_dir>" --collection 124
+```
+
+Run `--list` first and confirm with the user which resources belong to this survey (a
+collection may hold several surveys); then download only those with `--refs 101,102`. PDFs go to `sources/reports/`, zip files (with
+`--ext pdf,zip`) to `sources/stox/`; `sources/resourcespace.csv` records what came from
+where. If the listing works but downloads fail, the server may restrict direct file access
+for API users: ask the user to check with the ResourceSpace administrators.
 
 ## 4. Extract and redact (local)
 

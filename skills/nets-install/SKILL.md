@@ -35,9 +35,12 @@ use aggregates-only by default"**, or **"Stop"**. Record the answer in Step 5.
 
 1. If `~/.nets/config.json` has a `nets_path` containing `CLAUDE.md`, `scripts/` and
    `skills/nets-install/SKILL.md`, reuse it.
-2. Otherwise look for an existing clone (home, Documents, code folders). NETS may live as a
-   `nets/` folder inside a BAIT clone, or as its own repository.
-3. If none exists, ask where to clone. **Never** use a filesystem root or system directory
+2. Otherwise look for an existing clone (home, Documents, code folders). Early versions lived
+   in a `nets/` folder inside a BAIT clone; if you find one, suggest switching to the
+   standalone repository (https://github.com/niknikos/NETS) and update `nets_path`.
+3. If none exists, ask where to clone
+   (`git clone https://github.com/niknikos/NETS "<path>"`; the repository may be private,
+   so the user needs access). **Never** use a filesystem root or system directory
    (`/`, `C:\`, `/usr`, `C:\Program Files`); propose a folder under the user's home instead.
 4. For contributors, enable the pre-commit hook from the NETS repository root:
    `git config core.hooksPath .githooks` (it blocks data files and precise positions).
@@ -46,7 +49,8 @@ use aggregates-only by default"**, or **"Stop"**. Record the answer in Step 5.
 
 NETS scripts need R (≥ 4.1) with: `pdftools`, `yaml`, `jsonlite`, `dplyr`, `stringr`,
 `purrr`, `readr`, `tibble`, `tidyr`, `rlang`, `knitr`. Optional: `tesseract` (OCR of scanned
-pages) and Quarto (rendering syntheses to Word/HTML). Check what is missing and offer to
+pages), Quarto (rendering syntheses to Word/HTML), and `curl`, `openssl`, `keyring` (fetching
+reports from ResourceSpace). Check what is missing and offer to
 install it (following BAIT's `r-package-setup` skill conventions, if BAIT is installed).
 
 ## Step 4 — Workspace for survey material
@@ -77,6 +81,32 @@ Write or merge `~/.nets/config.json`:
 Use `"data_agreements_confirmed": false` and `"default_context_policy": "aggregates-only"`
 when the user chose the second option in Step 1. Save a note to your own long-term memory
 that NETS lives at `nets_path` and what it is for.
+
+## Step 5b — ResourceSpace connection (optional)
+
+If the user's reports are in a ResourceSpace archive (e.g. IMR's), NETS can fetch whole
+collections into a survey's `sources/` folder. This runs on the user's machine, inside the
+institute's network.
+
+1. Add the address and user name (not secret) to `~/.nets/config.json`:
+   ```json
+   "resourcespace": { "base_url": "https://<host>", "user": "<ResourceSpace user name>" }
+   ```
+   Prefer `https`. If only `http` works, the script warns: the signed query protects the key,
+   but documents cross the network unencrypted.
+2. The API needs the user's **private API key** (from their ResourceSpace user profile;
+   administrators may need to enable API access). **The user stores it themselves**, in
+   their own R console, never in chat, the config file or a repository:
+   ```r
+   keyring::key_set("nets-resourcespace", username = "<ResourceSpace user name>")
+   ```
+   It is kept in the operating system's credential store (Keychain, Windows Credential
+   Manager, Secret Service). For non-interactive use, `NETS_RS_KEY` in the environment also
+   works, but is less protected.
+3. Test with a listing: `Rscript "<nets_path>/scripts/nets_fetch_resourcespace.R"
+   "<any survey_dir>" --collection <id> --list`.
+
+If the user offers to type a password or key into the chat, decline and explain why.
 
 ## Step 6 — Install skills globally and link the knowledge
 

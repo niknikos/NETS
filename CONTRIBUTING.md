@@ -18,8 +18,6 @@ file types and lines with precise positions, and stamps the version:
 git config core.hooksPath .githooks
 ```
 
-While NETS lives inside a BAIT clone, BAIT's own hook is the active one; the NETS hook
-applies once NETS is its own repository.
 
 ## What to contribute
 

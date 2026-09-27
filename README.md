@@ -1,6 +1,6 @@
 # 🕸️ NETS — Nansen Evidence & Technical Synthesis
 
-<!-- version -->**Version 0.1.0** (2026-09-27)<!-- /version -->
+<!-- version -->**Version 0.2.0** (2026-09-27)<!-- /version -->
 
 **Help your AI coding agent turn EAF-Nansen survey reports and StoX outputs into careful,
 traceable syntheses for regional bodies — without losing control of partners' data.**
@@ -13,13 +13,15 @@ general coding agent (Claude Code, Codex, Cursor, …) the procedures, backgroun
 tools to prepare those syntheses well, and makes the safeguards part of the workflow rather
 than an afterthought.
 
-NETS is a sibling of [BAIT](../README.md), the IMR Biotic AI Toolkit, and follows the same
+NETS is a sibling of [BAIT](https://github.com/DeepWaterIMR/BAIT), the IMR Biotic AI Toolkit, and follows the same
 design: a knowledge pack the agent reads at runtime, not a trained model.
 
 ## What it does
 
 1. **Registers a survey** in a local workspace, with a manifest (`survey.yaml`) recording
-   areas, data owners, and **clearance per area for each body**.
+   areas, data owners, and **clearance per area for each body**. Reports can be fetched from
+   a ResourceSpace archive (e.g. IMR's) with signed API calls; the key stays in the
+   operating system's credential store.
 2. **Extracts report PDFs locally**, masks positions with sub-degree precision and withholds
    station-listing pages before the agent reads anything. French, Portuguese and English
    notations are handled; scanned pages can be OCR'd.
@@ -58,7 +60,7 @@ survey content. A local model is the appropriate route in that case.
 
 1. Have R (≥ 4.1) and an agent. Tell the agent:
    ```
-   install NETS from <path or URL of this folder>
+   install NETS from https://github.com/niknikos/NETS
    ```
    It runs [`nets-install`](skills/nets-install/SKILL.md): onboarding, R packages, a
    workspace outside every repository, global skills, and the test suite.

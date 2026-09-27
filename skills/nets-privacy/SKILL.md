@@ -38,6 +38,9 @@ skill is the operational summary.
   scientist decides and sends through the proper channel.
 - **Never commit survey material** to NETS, BAIT or any project repository.
 - Keep survey material out of web searches, issue trackers and other tools.
+- **Never ask for, accept or handle credentials** (ResourceSpace keys, passwords). The user
+  stores them in the OS credential store themselves; if they paste one into chat, tell them
+  to revoke and replace it.
 
 ## Ask the user first when
 

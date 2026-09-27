@@ -29,7 +29,7 @@ aggregations, shared stocks under negotiation, fishing-vessel sightings, dispute
    paste them. Never print station- or individual-level tables to the console.
 4. **Nothing leaves the machine except through the user.** Never upload, paste into web
    tools, search with, or send survey content. You draft and check; the responsible
-   scientist decides and sends.
+   scientist decides and sends. **Never ask for or accept credentials** in chat.
 5. **The workspace is not a repository.** Survey material stays in the NETS workspace
    (`workspace_path` in `~/.nets/config.json`), never in NETS, BAIT or a project repo.
    Commits contain code and prose only, with synthetic or whole-degree values.
@@ -51,6 +51,7 @@ are layered:
 | Layer | Where |
 |---|---|
 | Clearance register per survey, body and area | `survey.yaml` ([template](templates/survey.yaml)) |
+| Fetch from ResourceSpace with signed API calls; key stays in the OS credential store | [`scripts/nets_fetch_resourcespace.R`](scripts/nets_fetch_resourcespace.R) |
 | Local extraction; positions masked, station listings withheld | [`scripts/nets_ingest_pdf.R`](scripts/nets_ingest_pdf.R) |
 | StoX detail tables reach you only as aggregates | [`scripts/nets_stox.R`](scripts/nets_stox.R) |
 | Every number from a human-verified evidence log | [`scripts/nets_evidence.R`](scripts/nets_evidence.R) |
@@ -82,7 +83,7 @@ knowledge linked at `~/.claude/nets-knowledge`, configuration in `~/.nets/config
 | Install / set up NETS | [`skills/nets-install`](skills/nets-install/SKILL.md) |
 | Update NETS | [`skills/nets-update`](skills/nets-update/SKILL.md) |
 | Handle survey material safely; clearance and sensitivity questions | [`skills/nets-privacy`](skills/nets-privacy/SKILL.md) |
-| Register a survey, add reports, extract and redact | [`skills/nets-ingest`](skills/nets-ingest/SKILL.md) |
+| Register a survey, add reports (also from ResourceSpace), extract and redact | [`skills/nets-ingest`](skills/nets-ingest/SKILL.md) |
 | Use StoX outputs | [`skills/nets-stox`](skills/nets-stox/SKILL.md) |
 | Prepare a synthesis for a body | [`skills/nets-synthesis`](skills/nets-synthesis/SKILL.md) |
 | Check a synthesis before sending | [`skills/nets-release-check`](skills/nets-release-check/SKILL.md) |

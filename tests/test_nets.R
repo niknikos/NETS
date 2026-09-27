@@ -11,7 +11,8 @@
 self <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)[1])
 nets_root_dir <- normalizePath(file.path(dirname(self), ".."))
 for (s in c("nets_common.R", "nets_evidence.R", "nets_new_survey.R", "nets_ingest_pdf.R",
-            "nets_stox.R", "nets_release_check.R", "nets_new_synthesis.R")) {
+            "nets_stox.R", "nets_release_check.R", "nets_new_synthesis.R",
+            "nets_fetch_resourcespace.R")) {
   source(file.path(nets_root_dir, "scripts", s))
 }
 
@@ -131,6 +132,50 @@ check("register records checksum", nrow(reg) == 1 && nchar(reg$md5) == 32)
 msgs <- character()
 withCallingHandlers(nets_ingest_reports(sd), message = function(e) { msgs <<- c(msgs, conditionMessage(e)); invokeRestart("muffleMessage") })
 check("unchanged PDFs are skipped", any(str_detect(msgs, "Unchanged, skipped")))
+
+# ---- ResourceSpace fetch (fake server; no network) --------------------------------------
+rs_cfg <- tempfile(fileext = ".json")
+jsonlite::write_json(list(resourcespace = list(base_url = "https://rs.example.org/login.php?x=1", user = "tester")),
+                     rs_cfg, auto_unbox = TRUE)
+Sys.setenv(NETS_CONFIG = rs_cfg, NETS_RS_KEY = "synthetic-private-key")
+st <- nets_rs_settings()
+check("login page address is reduced to the base URL", st$base_url == "https://rs.example.org")
+u <- nets_rs_url(st, "synthetic-private-key", "do_search", list("!collection124"))
+check("signed query matches an independent sha256",
+      str_extract(u, "(?<=sign=)[0-9a-f]+$") ==
+        "5fd422df115e84eb3147fb37e8ab9129de0075df62a2a559a16e55eaf38734a8")
+check("the key itself is not in the URL", !str_detect(u, "synthetic-private-key"))
+
+calls <- character()
+fake_get <- function(url) {
+  q <- str_match(url, "/api/\\?(.*)&sign=([0-9a-f]+)$")
+  if (as.character(openssl::sha256(paste0("synthetic-private-key", q[2]))) != q[3]) return("Invalid signature")
+  fn <- str_match(q[2], "function=([a-z_]+)")[2]
+  calls <<- c(calls, fn)
+  switch(fn,
+    do_search = jsonlite::toJSON(data.frame(ref = c(11, 12, 13), file_extension = c("pdf", "PDF", "xlsx"),
+                                            field8 = c("Survey report A", "Rapport B", "Station data"))),
+    get_resource_path = jsonlite::toJSON(paste0("https://rs.example.org/filestore/", str_match(q[2], "param1=(\\d+)")[2]),
+                                         auto_unbox = TRUE))
+}
+fake_download <- function(url, dest) file.copy(pdf_file, dest, overwrite = TRUE)
+listed <- nets_rs_fetch(sd, 124, list_only = TRUE, http_get = fake_get, http_download = fake_download)
+check("listing returns the collection without downloading", nrow(listed) == 3 && !"get_resource_path" %in% calls)
+got <- nets_rs_fetch(sd, 124, http_get = fake_get, http_download = fake_download)
+check("only PDFs are downloaded, into sources/reports", nrow(got) == 2 &&
+        all(file.exists(file.path(sd, got$file))) && all(str_detect(got$file, "^sources/reports/rs1[12]_")))
+check("download register is written", nrow(read_csv(file.path(sd, "sources", "resourcespace.csv"), show_col_types = FALSE)) == 2)
+again <- nets_rs_fetch(sd, 124, http_get = fake_get, http_download = fake_download)
+expect_error("unknown resource references are refused",
+             nets_rs_fetch(sd, 124, refs = "99", http_get = fake_get, http_download = fake_download), "Not in collection")
+check("already downloaded resources are skipped", nrow(again) == 0)
+Sys.setenv(NETS_RS_KEY = "wrong-key")
+expect_error("a wrong key is reported as a signature problem",
+             nets_rs_fetch(sd, 124, list_only = TRUE, http_get = fake_get), "signature")
+Sys.unsetenv(c("NETS_CONFIG", "NETS_RS_KEY"))
+expect_error("a missing key explains how to store it (not in chat)",
+             nets_rs_key("nobody-synthetic"), "key_set")
+file.remove(file.path(sd, got$file)); file.remove(file.path(sd, "sources", "resourcespace.csv"))
 
 # ---- StoX outputs -------------------------------------------------------------------
 stox <- file.path(sd, "sources", "stox", "proj")
